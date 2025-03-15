@@ -73,7 +73,7 @@ jobs:
       - name: Cross-compile
         run: |
           if [[ "${{ matrix.platform }}" == "386-geode" ]]; then
-            GOOS=${{ matrix.os }} GOARCH=386 GO386=sse ./build_dist.sh \
+            GOOS=linux GOARCH=386 GO386=387 ./build_dist.sh \
             --extra-small --box \
             -o "${{ env.FILE_NAME }}-${{ matrix.os }}-386-geode" ./cmd/${{ env.FILE_NAME }}
           elif [[ "${{ matrix.platform }}" == "mipsle" ]]; then
