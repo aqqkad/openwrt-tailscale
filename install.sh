@@ -1,9 +1,24 @@
 #!/bin/sh
 
+# 脚本信息
+script_info() {
+    echo "#╔╦╗┌─┐ ┬ ┬  ┌─┐┌─┐┌─┐┬  ┌─┐  ┌─┐┌┐┌  ╔═╗┌─┐┌─┐┌┐┌ ╦ ╦ ┬─┐┌┬┐  ╦ ┌┐┌┌─┐┌┬┐┌─┐┬  ┬  ┌─┐┬─┐#"
+    echo "# ║ ├─┤ │ │  └─┐│  ├─┤│  ├┤   │ ││││  ║ ║├─┘├┤ │││ ║║║ ├┬┘ │   ║ │││└─┐ │ ├─┤│  │  ├┤ ├┬┘#"
+    echo "# ╩ ┴ ┴ ┴ ┴─┘└─┘└─┘┴ ┴┴─┘└─┘  └─┘┘└┘  ╚═╝┴  └─┘┘└┘ ╚╩╝ ┴└─ ┴   ╩ ┘└┘└─┘ ┴ ┴ ┴┴─┘┴─┘└─┘┴└─#"
+    echo "┌────────────────────────────────────────────────────────────────────────────────────────┐"
+    echo "│ 一个用于在OpenWrt上安装Tailscale或更新Tailscale或...的一个脚本。                       │"
+    echo "│ 项目地址：https://github.com/GuNanOvO/openwrt-tailscale                                │"
+    echo "│ 脚本版本：v1.0                                                                         │"
+    echo "│ 更新日期：2025/3/16                                                                    │"
+    echo "│ 感谢你的使用，如有帮助，还请点颗star /<3                                               │"
+    echo "└────────────────────────────────────────────────────────────────────────────────────────┘"
+}
+
 # 基本配置
 # TAILSCALE 文件 URL
 # https://github.com/gunanovo/openwrt-tailscale/releases/latest
 # https://github.com/gunanovo/openwrt-tailscale/releases/latest/download/version.txt
+
 TAILSCALE_URL="gunanovo/openwrt-tailscale/releases/latest"
 # tailscale 文件 URL头
 URL_PROXYS="https://ghfast.top/https://github.com
@@ -143,7 +158,6 @@ get_free_space() {
     free_space=$((free_space_kb * 1024))
     free_space_mb=$(expr $free_space / 1024 / 1024)
     
-    echo "$free_space"
 }
 
 # 函数：获取 GitHub 文件大小（单位：bytes）
@@ -156,13 +170,11 @@ get_tailscale_info() {
 
     for attempt_times in $attempt_range; do
         for attempt_proxy in $URL_PROXYS; do
-            echo "$attempt_proxy"
             attempt_url="$attempt_proxy/$TAILSCALE_URL/download/version.txt"
-            tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url")
+            tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | sed 's/^v//')
 
             if [ -n "$tailscale_latest_version" ]; then
                 available_proxy="$attempt_proxy"
-                echo "成功得到可用代理头"
                 break 2
             fi
 
@@ -179,12 +191,21 @@ get_tailscale_info() {
         echo "1. 确保网络连接正常"
         echo "2. 报告开发者"
         exit 1
+    else
+        # 比较并判断是否可以持久安装tailscale
+        if [ "$free_space" -gt "$file_size" ]; then
+            tailscale_persistent_installable=true
+        else
+            tailscale_persistent_installable=false
+        fi
     fi
 
     file_size_mb=$(expr $file_size / 1024 / 1024)
 }
 
+# 函数：更新
 update() {
+    echo "正在更新"
     if [ "$tailscale_install_status" = "temp" ]; then
         temp_install
     elif [ "$tailscale_install_status" = "persistent" ]; then
@@ -192,64 +213,106 @@ update() {
     fi
 }
 
+# 函数：卸载
 remove() { 
     while true; do
-    read -p "确认卸载tailscale吗？(y/N): " choice
+        read -n 1 -p "确认卸载tailscale吗？(y/N): " choice
 
-    if [ "$choice" = "Y" ] || [ "$choice" = "y" ]; then
-        tailscale_stoper
+        if [ "$choice" = "Y" ] || [ "$choice" = "y" ]; then
+            tailscale_stoper
 
-        # remove指定目录的 tailscale 或 tailscaled 文件
-        directories="/etc/init.d /etc /etc/config /usr/bin /tmp /var/lib"
-        binaries="tailscale tailscaled"
+            # remove指定目录的 tailscale 或 tailscaled 文件
+            directories="/etc/init.d /etc /etc/config /usr/bin /tmp /var/lib"
+            binaries="tailscale tailscaled"
 
-        # 使用 for 循环遍历目录和文件
-        for dir in $directories; do
-            for bin in $binaries; do
-                if [ -f "$dir/$bin" ]; then
-                    rm -rf $dir/$bin
-                fi
+            # 使用 for 循环遍历目录和文件
+            for dir in $directories; do
+                for bin in $binaries; do
+                    if [ -f "$dir/$bin" ]; then
+                        rm -rf $dir/$bin
+                    fi
+                done
             done
-        done
 
-        ip link delete tailscale0
-        cleanup
+            ip link delete tailscale0
+            cleanup
 
-        break
+            break
 
-    elif [ "$choice" = "N" ] || [ "$choice" = "n" ]; then
-        echo "取消卸载"
-        break
-    else
-        echo "取消卸载"
-        break
-    fi
-done
-
+        else
+            echo "取消卸载"
+            break
+        fi
+    done
 }
 
+# 函数：持久安装
 persistent_install() {
+    echo "正在临时安装"
     downloader
     mv /tmp/tailscaled /usr/bin
     ln -sv /usr/bin/tailscaled /usr/bin/tailscale
 
 }
 
-temp_install() {
+# 函数：临时安装
+temp_install() { 
+    confirm2temp_install=$1
+    if [ "$confirm2temp_install" != "true" ]; then
+        echo "╔═══════════════════════════════════════════════════════╗"
+        echo "║ WARNING!!!请你确认以下信息:                           ║"
+        echo "║                                                       ║"
+        echo "║ 临时安装是将tailscale文件置于/tmp目录, /tmp目录会在重 ║"
+        echo "║ 启设备后清空. 如果该脚本在重启后重新下载tailscale失败 ║"
+        echo "║ 则tailscale将无法正常使用, 您所有依托于tailscale的服  ║"
+        echo "║ 务都将失效, 请您明悉并确定该讯息, 以免造成损失. 谢谢! ║"
+        echo "║ 如果可以持久安装，推荐您采取持久安装方式!             ║"
+        echo "║                                                       ║"
+        echo "╚═══════════════════════════════════════════════════════╝"
+        read -n 1 -p "确认采用临时安装方式安装tailscale吗？(y/N): " choice
+
+        if [ "$choice" != "Y" ] || [ "$choice" != "y" ]; then
+            exit
+        fi
+    echo "正在临时安装"
+    fi 
     downloader
     ln -sv /tmp/tailscaled /tmp/tailscale
     echo "$TMP_TAILSCALE" > /usr/bin/tailscale
     echo "$TMP_TAILSCALED" > /usr/bin/tailscaled
 }
 
+# 函数：持久安装切换到临时安装
 persistent_to_temp() {
+    confirm2temp_install=$1
+    if [ "$confirm2temp_install" != "true" ]; then
+        echo "╔═══════════════════════════════════════════════════════╗"
+        echo "║ WARNING!!!请你确认以下信息:                           ║"
+        echo "║                                                       ║"
+        echo "║ 临时安装是将tailscale文件置于/tmp目录, /tmp目录会在重 ║"
+        echo "║ 启设备后清空. 如果该脚本在重启后重新下载tailscale失败 ║"
+        echo "║ 则tailscale将无法正常使用, 您所有依托于tailscale的服  ║"
+        echo "║ 务都将失效, 请您明悉并确定该讯息, 以免造成损失. 谢谢! ║"
+        echo "║ 如果可以持久安装，推荐您采取持久安装方式!             ║"
+        echo "║                                                       ║"
+        echo "╚═══════════════════════════════════════════════════════╝"
+        read -n 1 -p "确认采用临时安装方式安装tailscale吗？(y/N): " choice
+
+        if [ "$choice" != "Y" ] || [ "$choice" != "y" ]; then
+            exit
+        fi
+
+    fi 
+    echo "正在临时安装"
     tailscale_stoper
     rm -rf /usr/bin/tailscale
     rm -rf /usr/bin/tailscaled
-    temp_install
+    temp_install "true"
 }
 
+# 函数：临时安装切换到持久安装
 temp_to_persistent() {
+    echo "正在临时安装"
     tailscale_stoper
     rm -rf /tmp/tailscale
     rm -rf /tmp/tailscaled
@@ -258,11 +321,13 @@ temp_to_persistent() {
     persistent_install
 }
 
+# 函数：下载器
 downloader() {
     wget -cO /tmp/tailscaled "$available_proxy/$TAILSCALE_URL/download/tailscaled-linux-${arch}"
     wget -cO /etc/init.d/tailscale "$available_proxy/https://github.com/GuNanOvO/openwrt-tailscale/blob/main/etc/init.d/tailscale"
 }
 
+# 函数：tailscale服务启动器
 tailscale_starter() {
     /etc/init.d/tailscale start
 
@@ -271,6 +336,7 @@ tailscale_starter() {
     tailscale up
 }
 
+# 函数：tailscale服务停止器
 tailscale_stoper() {
     if [ "$tailscale_install_status" = "temp" ]; then
         /etc/init.d/tailscale stop
@@ -285,128 +351,140 @@ tailscale_stoper() {
     fi
 }
 
+# 函数：初始化
 init() {
-    #设置系统DNS
-    set_system_dns
-    #获取系统架构
-    get_system_arch
-    #检查是否安装过
-    check_tailscale_install_status
-    #获取磁盘剩余空间
-    echo "获取磁盘剩余空间"
-    get_free_space
-    #获取tailscale文件大小
-    echo "获取tailscale文件大小"
-    get_tailscale_info
-    # 比较并判断是否可以持久安装tailscale
-    if [ "$free_space" -gt "$file_size" ]; then
-        tailscale_persistent_installable=true
-    else
-        tailscale_persistent_installable=false
-    fi
+    #设置系统DNS #获取系统架构 #检查是否安装过 #获取磁盘剩余空间 #获取tailscale文件大小
+    local functions="set_system_dns get_system_arch check_tailscale_install_status get_free_space get_tailscale_info"
+    local function_count=5
+    local total=50
+    local progress=0
+
+    # 0%进度条
+    printf "\r初始化中: [%-50s] %3d%%" "$(printf '='%.0s $(seq 1 "$progress"))" "$((progress * 2))"
+    
+    for function in $functions; do
+        printf "\r初始化中: [%-50s] %3d%%" "$(printf '='%.0s $(seq 1 "$progress"))" "$((progress * 2))"
+        eval "$function"
+        progress=$((progress + $((total / $function_count))))
+
+    done
+    
+    # 100%进度条
+    printf "\r  完成  : [%-50s] %3d%%" "$(printf '='%.0s $(seq 1 "$progress"))" "$((progress * 2))"
 
 }
 
-info() {
-    echo "当前机器架构：[${arch}${endianness}]"
+# 函数：显示基本信息
+show_info() {
+    echo "=============== 基本信息 ==============="
+    echo "│ 当前机器架构：[${arch}${endianness}]"
     if [ "$is_tailscale_installed" = "true" ]; then
-        echo "tailscale安装状态：已安装"
-        echo "tailscale版本：$tailscale_version"
+        echo "│ tailscale安装状态：已安装"
+        echo "│ tailscale版本：$tailscale_version"
     else 
-        echo "tailscale安装状态：未安装"
-        echo "tailscale版本：未安装"
+        echo "│ tailscale安装状态：未安装"
+        echo "│ tailscale版本：未安装"
     fi
-    echo "剩余存储空间：$free_space B / $(expr $free_space / 1024 / 1024) M"
-    echo "tailscale文件大小：$file_size B / $(expr $file_size / 1024 / 1024) M" 
+
+    echo "│ tailscale版本：$tailscale_latest_version"
+    echo "│ 剩余存储空间：$free_space B / $(expr $free_space / 1024 / 1024) M"
+    echo "│ tailscale文件大小：$file_size B / $(expr $file_size / 1024 / 1024) M" 
     # 比较并判断
     if [ "$free_space" -gt "$file_size" ]; then
-        echo "剩余空间足以持久安装tailscale"
+        echo "│ 剩余空间足以持久安装tailscale"
     else
-        echo "剩余空间不足以持久安装tailscale"
+        echo "│ 剩余空间不足以持久安装tailscale"
     fi
+    echo "=============== 基本信息 ==============="
 }
 
 option_menu() {
-    menu_items=""
-    menu_operations=""
-    option_index=1
-
-    menu_items="$option_index).显示基本信息"
-    menu_operations="info"
-    option_index=$((option_index + 1))
-
-    if [ "$is_tailscale_installed" = "true" ] && ["$tailscale_latest_version" -gt "$tailscale_version" ]; then
-        menu_items="$menu_items $option_index).更新"
-        menu_operations="$menu_operations update"
-        option_index=$((option_index + 1))
-    fi
-
-    if [ "$is_tailscale_installed" = "true" ]; then
-        menu_items="$menu_items $option_index).卸载"
-        menu_operations="$menu_operations remove"
-        option_index=$((option_index + 1))
-    fi
-
-    if [ "$tailscale_install_status" = "temp" ] && [ "$tailscale_persistent_installable" = "true" ]; then
-        menu_items="$menu_items $option_index).切换至持久安装"
-        menu_operations="$menu_operations temp_to_persistent"
-        option_index=$((option_index + 1))
-    fi
-
-    if [ "$is_tailscale_installed" = "false" ] && [ "$tailscale_persistent_installable" = "true" ]; then
-        menu_items="$menu_items $option_index).持久安装"
-        menu_operations="$menu_operations persistent_install"
-        option_index=$((option_index + 1))
-    fi
-
-    if [ "$tailscale_install_status" = "persistent" ]; then
-        menu_items="$menu_items $option_index).切换至临时安装"
-        menu_operations="$menu_operations persistent_to_temp"
-        option_index=$((option_index + 1))
-    fi
-
-    if [ "$is_tailscale_installed" = "false" ]; then
-        menu_items="$menu_items $option_index).临时安装"
-        menu_operations="$menu_operations temp_install"
-        option_index=$((option_index + 1))
-    fi
-
-    menu_items="$menu_items $option_index).退出"
-    menu_operations="$menu_operations exit"
-    #option_index=$((option_index + 1))
-
-    # 显示菜单并获取用户输入
     while true; do
-        echo "===== 动态菜单 ====="
-        
-        # 遍历选项列表，动态生成菜单
-        for item in $menu_items; do
-            echo "$item"
-        done
-        
-        echo "请输入选项: "
-        read -n 1 choice
+        menu_items=""
+        menu_operations=""
+        option_index=1
 
-        # 判断输入是否合法
-        if [ "$choice" -ge 0 ] && [ "$choice" -le "$option_index" ]; then
-            operation_index=1
-            for operation in $menu_operations; do
-                if [ "$operation_index" = "$choice" ]; then
-                    eval "$operation"
-                fi
-                operation_index=$((operation_index + 1))
-            done
-        else
-            echo "无效选项，请重试！"
+        menu_items="$option_index).显示基本信息"
+        menu_operations="show_info"
+        option_index=$((option_index + 1))
+
+        if [ "$is_tailscale_installed" = "true" ] && [ $tailscale_latest_version != $tailscale_version ]; then
+            menu_items="$menu_items $option_index).更新"
+            menu_operations="$menu_operations update"
+            option_index=$((option_index + 1))
         fi
 
-        # 退出判断
-        [ "$choice" -eq "$exit_option" ] && break
+        if [ "$is_tailscale_installed" = "true" ]; then
+            menu_items="$menu_items $option_index).卸载"
+            menu_operations="$menu_operations remove"
+            option_index=$((option_index + 1))
+        fi
 
-        echo "按回车键继续..."
-        read -r
+        if [ "$tailscale_install_status" = "temp" ] && [ "$tailscale_persistent_installable" = "true" ]; then
+            menu_items="$menu_items $option_index).切换至持久安装"
+            menu_operations="$menu_operations temp_to_persistent"
+            option_index=$((option_index + 1))
+        fi
+
+        if [ "$is_tailscale_installed" = "false" ] && [ "$tailscale_persistent_installable" = "true" ]; then
+            menu_items="$menu_items $option_index).持久安装"
+            menu_operations="$menu_operations persistent_install"
+            option_index=$((option_index + 1))
+        fi
+
+        if [ "$tailscale_install_status" = "persistent" ]; then
+            menu_items="$menu_items $option_index).切换至临时安装"
+            menu_operations="$menu_operations persistent_to_temp"
+            option_index=$((option_index + 1))
+        fi
+
+        if [ "$is_tailscale_installed" = "false" ]; then
+            menu_items="$menu_items $option_index).临时安装"
+            menu_operations="$menu_operations temp_install"
+            option_index=$((option_index + 1))
+        fi
+
+        menu_items="$menu_items $option_index).退出"
+        menu_operations="$menu_operations exit"
+        #option_index=$((option_index + 1))
+
+        # 显示菜单并获取用户输入
+        while true; do
+            echo ""
+            echo "=============== 菜单 ==============="
+            
+            # 遍历选项列表，动态生成菜单
+            for item in $menu_items; do
+                echo "│       $item"
+            done
+            echo ""
+
+            read -n 1 -p "请输入选项(0 ~ $option_index): " choice
+            echo ""
+            echo ""
+
+            # 判断输入是否合法
+            if [ "$choice" -ge 0 ] && [ "$choice" -le "$option_index" ]; then
+                operation_index=1
+                for operation in $menu_operations; do
+                    if [ "$operation_index" = "$choice" ]; then
+                        eval "$operation"
+                    fi
+                    operation_index=$((operation_index + 1))
+                done
+                echo ""
+            else
+                echo "无效选项，请重试！"
+                echo ""
+                break
+            fi
+        done
     done
 }
 
+clear
+script_info
 init
+clear
+script_info
 option_menu
