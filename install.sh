@@ -6,16 +6,14 @@
 # https://github.com/gunanovo/openwrt-tailscale/releases/latest/download/version.txt
 TAILSCALE_URL="gunanovo/openwrt-tailscale/releases/latest"
 # tailscale 文件 URL头
-URL_PROXYS="
-https://ghfast.top/https://github.com
+URL_PROXYS="https://ghfast.top/https://github.com
 https://cf.ghproxy.cc/https://github.com
 https://www.ghproxy.cc/https://github.com
 https://gh-proxy.com/https://github.com
 https://ghproxy.cc/https://github.com
 https://ghproxy.cn/https://github.com
 https://www.ghproxy.cn/https://github.com
-https://github.com
-"
+https://github.com"
 # init.d/tailscale 文件 URL
 INIT_URL=""
 # OpenWrt 可写存储分区，通常是 /overlay
