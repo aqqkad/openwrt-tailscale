@@ -158,7 +158,7 @@ get_tailscale_info() {
         for attempt_proxy in $URL_PROXYS; do
             echo "$attempt_proxy"
             attempt_url="$attempt_proxy/$TAILSCALE_URL/download/version.txt"
-            tailscale_latest_version=$(timeout $attempt_timeout wget -qO- "$attempt_url")
+            tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url")
 
             if [ -n "$tailscale_latest_version" ]; then
                 available_proxy="$attempt_proxy"
@@ -308,7 +308,7 @@ init() {
 }
 
 info() {
-    echo "当前机器架构：[${arch_}${endianness}]"
+    echo "当前机器架构：[${arch}${endianness}]"
     if [ "$is_tailscale_installed" = "true" ]; then
         echo "tailscale安装状态：已安装"
         echo "tailscale版本：$tailscale_version"
