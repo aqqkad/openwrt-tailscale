@@ -563,9 +563,9 @@ show_help() {
     echo "Tailscale on OpenWrt installer script. $SCRIPT_VERSION"
     echo "https://github.com/GuNanOvO/openwrt-tailscale"
     echo "  Usage:   "
-    echo "      --help: show help information"
-    echo "      --update: only update tailscale(no confirmation required)  "
-    echo "      --notiny: use the normal tailscale file(uncompressed)"
+    echo "      --help: Show this help"
+    echo "      --update: Update Tailscale directly (no confirmation)"
+    echo "      --notiny: Use uncompressed version (TODO)"
 }
 
 # 读取参数
