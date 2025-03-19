@@ -18,7 +18,7 @@ script_info() {
 
 # 基本配置
 # https://github.com/gunanovo/openwrt-tailscale/releases/latest
-# https://github.com/gunanovo/openwrt-tailscale/releases/latest/download/version.txt
+# https://github.com/gunanovo/openwrt-tailscale/releases/latest/download/info.txt
 
 # TAILSCALE 文件 URL
 TAILSCALE_URL="gunanovo/openwrt-tailscale/releases/latest"
@@ -190,10 +190,11 @@ get_tailscale_info() {
 
     for attempt_times in $attempt_range; do
         for attempt_proxy in $URL_PROXYS; do
-            attempt_url="$attempt_proxy/$TAILSCALE_URL/download/version.txt"
+            attempt_url="$attempt_proxy/$TAILSCALE_URL/download/info.txt"
             tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | sed 's/^v//')
+            file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "tailscaled-linux-amd64" | awk '{print $2}')
 
-            if [ -n "$tailscale_latest_version" ]; then
+            if [ -n "$tailscale_latest_version" ] && [ -n "$tailscale_latest_version" ]; then
                 available_proxy="$attempt_proxy"
                 break 2
             fi
@@ -201,15 +202,16 @@ get_tailscale_info() {
         done
     done
     
-    file_size=$(wget --spider --max-redirect=10 --server-response "$available_proxy/$TAILSCALE_URL/download/tailscaled-linux-${arch}" 2>&1 | 
-        grep 'Content-Length' | 
-        awk '{print $2}' | 
-        tail -n 1)
+    # file_size=$(wget --spider --max-redirect=10 --server-response "$available_proxy/$TAILSCALE_URL/download/tailscaled-linux-${arch}" 2>&1 | 
+    #     grep 'Content-Length' | 
+    #     awk '{print $2}' | 
+    #     tail -n 1)
 
     if [ -z "$file_size" ] || ! [[ "$file_size" =~ ^[0-9]+$ ]]; then
         echo "错误: 无法获取tailscale大小"
         echo "1. 确保网络连接正常"
-        echo "2. 报告开发者"
+        echo "2. 重试"
+        echo "3. 报告开发者"
         exit 1
     else
         # 比较并判断是否可以持久安装tailscale
