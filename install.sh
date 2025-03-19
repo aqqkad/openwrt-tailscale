@@ -192,7 +192,7 @@ get_tailscale_info() {
         for attempt_proxy in $URL_PROXYS; do
             attempt_url="$attempt_proxy/$TAILSCALE_URL/download/info.txt"
             tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | sed 's/^v//')
-            file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "tailscaled-linux-amd64" | awk '{print $2}')
+            file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "tailscaled-linux-${arch}" | awk '{print $2}')
 
             if [ -n "$tailscale_latest_version" ] && [ -n "$tailscale_latest_version" ]; then
                 available_proxy="$attempt_proxy"
