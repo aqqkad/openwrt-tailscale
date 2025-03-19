@@ -56,9 +56,6 @@ jobs:
           - mips64
           - mips64le
           - 386        # for i386
-          - 486        # for i386
-          - 586        # for i386
-          - 686        # for i386
           - amd64      # for x86_64
           - 386-geode  # for geode
     steps:

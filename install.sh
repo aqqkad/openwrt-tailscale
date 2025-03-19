@@ -100,13 +100,13 @@ get_system_arch() {
             arch=386
             ;;
         i486)
-            arch=486
+            arch=386
             ;;
         i586)
-            arch=586
+            arch=386
             ;;
         i686)
-            arch=686
+            arch=386
             ;;
         x86_64)
             arch=amd64
