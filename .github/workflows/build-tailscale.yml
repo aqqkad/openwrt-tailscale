@@ -139,9 +139,13 @@ jobs:
       - name: Create checksums
         run: |
           sha256sum "${{ env.FILE_NAME }}-"* > "checksums.txt"
-      - name: Create version file
+      - name: Create info file
         run: |
-          echo "${{ env.TAG }}" > "version.txt"
+          echo "${{ env.TAG }}" > info.txt
+          for file in ${{ env.FILE_NAME }}-*; do
+            size=$(stat -c %s "$file")
+            echo "$file $size bytes" >> info.txt
+          done
       - name: Checkout ${{ env.SOFTWARE_NAME }} Small repository
         uses: actions/checkout@v4
         with:
@@ -170,7 +174,7 @@ jobs:
           artifacts: |
             ${{ env.FILE_NAME }}-*
             checksums.txt
-            version.txt
+            info.txt
           body: |
             Small ${{ env.SOFTWARE_NAME }} build ${{ env.TAG }}
 
