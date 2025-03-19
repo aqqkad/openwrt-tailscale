@@ -99,6 +99,15 @@ get_system_arch() {
         i386)
             arch=386
             ;;
+        i486)
+            arch=486
+            ;;
+        i586)
+            arch=586
+            ;;
+        i686)
+            arch=686
+            ;;
         x86_64)
             arch=amd64
             ;;
@@ -118,7 +127,8 @@ get_system_arch() {
         riscv64)
             arch=riscv64
             ;;
-        *)
+        *)  
+            echo ""
             echo "INSTALL: --------------------------------------------"
             echo "当前机器的架构是 [${arch_}${endianness}]"
             echo "脚本不支持您的机器"
