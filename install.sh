@@ -166,7 +166,7 @@ get_free_space() {
     fi
 
     # 使用 df -k 获取以 KB（1024 字节）为单位的剩余空间
-    free_space_kb=$(df -k "$MOUNT_POINT" | tail -n 1 | awk '{print $4}')
+    free_space_kb=$(df -Pk "$MOUNT_POINT" | awk 'NR==2 {print $(NF-2)}')
     
     # 检查输出是否有效
     if [ -z "$free_space_kb" ] || ! echo "$free_space_kb" | grep -q '^[0-9]\+$'; then
