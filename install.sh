@@ -291,7 +291,7 @@ persistent_install() {
         echo "╚═══════════════════════════════════════════════════════╝"
         read -n 1 -p "确认采用持久安装方式安装tailscale吗？(y/N): " choice
 
-        if [ "$choice" != "Y" ] || [ "$choice" != "y" ]; then
+        if [ "$choice" != "Y" ] && [ "$choice" != "y" ]; then
             exit
         fi
     echo "正在持久安装"
@@ -320,7 +320,7 @@ temp_to_persistent() {
         echo "╚═══════════════════════════════════════════════════════╝"
         read -n 1 -p "确认采用持久安装方式安装tailscale吗？(y/N): " choice
 
-        if [ "$choice" != "Y" ] || [ "$choice" != "y" ]; then
+        if [ "$choice" != "Y" ] && [ "$choice" != "y" ]; then
             exit
         fi
         echo "正在持久安装"
@@ -352,7 +352,7 @@ temp_install() {
         echo "╚═══════════════════════════════════════════════════════╝"
         read -n 1 -p "确认采用临时安装方式安装tailscale吗？(y/N): " choice
 
-        if [ "$choice" != "Y" ] || [ "$choice" != "y" ]; then
+        if [ "$choice" != "Y" ] && [ "$choice" != "y" ]; then
             exit
         fi
     echo "正在临时安装"
@@ -384,7 +384,7 @@ persistent_to_temp() {
         echo "╚═══════════════════════════════════════════════════════╝"
         read -n 1 -p "确认采用临时安装方式安装tailscale吗？(y/N): " choice
 
-        if [ "$choice" != "Y" ] || [ "$choice" != "y" ]; then
+        if [ "$choice" != "Y" ] && [ "$choice" != "y" ]; then
             exit
         fi
 
