@@ -141,7 +141,7 @@ jobs:
           sha256sum "${{ env.FILE_NAME }}-"* > "checksums.txt"
       - name: Create info file
         run: |
-          echo "${{ env.TAG }}" > info.txt
+          echo "version ${{ env.TAG }}" > info.txt
           for file in ${{ env.FILE_NAME }}-*; do
             size=$(stat -c %s "$file")
             echo "$file $size bytes" >> info.txt
