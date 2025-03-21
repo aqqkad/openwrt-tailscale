@@ -8,11 +8,11 @@ script_info() {
     echo "# ║ ├─┤ │ │  └─┐│  ├─┤│  ├┤   │ ││││  ║ ║├─┘├┤ │││ ║║║ ├┬┘ │   ║ │││└─┐ │ ├─┤│  │  ├┤ ├┬┘#"
     echo "# ╩ ┴ ┴ ┴ ┴─┘└─┘└─┘┴ ┴┴─┘└─┘  └─┘┘└┘  ╚═╝┴  └─┘┘└┘ ╚╩╝ ┴└─ ┴   ╩ ┘└┘└─┘ ┴ ┴ ┴┴─┘┴─┘└─┘┴└─#"
     echo "┌────────────────────────────────────────────────────────────────────────────────────────┐"
-    echo "│ A script for installing/updating Tailscale on OpenWrt and related operations.           │"
-    echo "│ Project URL: https://github.com/GuNanOvO/openwrt-tailscale                              │"
-    echo "│ Script Version: "$SCRIPT_VERSION"                                                                        │"
-    echo "│ Update Date: "$SCRIPT_DATE"                                                                   │"
-    echo "│ Thanks for using! If helpful, please give us a star /<3                                  │"
+    echo "│ A script for installing/updating Tailscale on OpenWrt and related operations.          │"
+    echo "│ Project URL: https://github.com/GuNanOvO/openwrt-tailscale                             │"
+    echo "│ Script Version: "$SCRIPT_VERSION"                                                                  │"
+    echo "│ Update Date: "$SCRIPT_DATE"                                                                │"
+    echo "│ Thanks for using! If helpful, please give us a star /<3                                │"
     echo "└────────────────────────────────────────────────────────────────────────────────────────┘"
 }
 
@@ -505,25 +505,25 @@ option_menu() {
         fi
 
         if [ "$tailscale_install_status" = "temp" ] && [ "$tailscale_persistent_installable" = "true" ]; then
-            menu_items="$menu_items $option_index).Switch to Persistent"
+            menu_items="$menu_items $option_index).Switch-to-Persistent"
             menu_operations="$menu_operations temp_to_persistent"
             option_index=$((option_index + 1))
         fi
 
         if [ "$is_tailscale_installed" = "false" ] && [ "$tailscale_persistent_installable" = "true" ]; then
-            menu_items="$menu_items $option_index).Persistent Install"
+            menu_items="$menu_items $option_index).Persistent-Install"
             menu_operations="$menu_operations persistent_install"
             option_index=$((option_index + 1))
         fi
 
         if [ "$tailscale_install_status" = "persistent" ]; then
-            menu_items="$menu_items $option_index).Switch to Temporary"
+            menu_items="$menu_items $option_index).Switch-to-Temporary"
             menu_operations="$menu_operations persistent_to_temp"
             option_index=$((option_index + 1))
         fi
 
         if [ "$is_tailscale_installed" = "false" ]; then
-            menu_items="$menu_items $option_index).Temporary Install"
+            menu_items="$menu_items $option_index).Temporary-Install"
             menu_operations="$menu_operations temp_install"
             option_index=$((option_index + 1))
         fi
