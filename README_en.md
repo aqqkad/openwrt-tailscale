@@ -58,7 +58,7 @@ wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-t
    🔥 The `/tmp` directory is cleared upon reboot! This method is only recommended for devices that cannot persistently install due to storage constraints. Since temporary installation heavily depends on network availability, do not solely rely on Tailscale to avoid interruptions.
 
 2. **Network Requirements**  
-   🌐 Must have access to GitHub and proxy mirror sites.
+   🌐 Must have access to GitHub .
 
 3. **Compatibility**  
    ⚠️ Most devices or architectures have not been tested. If you encounter issues, please submit an [issue](https://github.com/GuNanOvO/openwrt-tailscale/issues), and I will work on fixing them as soon as possible.
