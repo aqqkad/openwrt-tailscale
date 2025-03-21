@@ -134,7 +134,7 @@ jobs:
       - name: Compress Binary with UPX
         run: |
           for file in "${{ env.FILE_NAME }}-"*; do
-            if [[ "$file" == *"mips64"* || "$file" == *"mips64le"* || "$file" == *"amd64" ]]; then
+            if [[ "$file" == *"mips64"* || "$file" == *"mips64le"* ]]; then
               echo "Skipping UPX compression for $file due to unsupported format"
             else
               "${PWD}/upx" --lzma --best --no-progress "$file"
