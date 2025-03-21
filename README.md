@@ -9,7 +9,8 @@
 
 > ✨ 一个专为 OpenWrt 小存储空间设备设计的 Tailscale 安装工具  
 > 🚀 支持持久化安装、临时安装  
-> 🔥 缩小tailscale体积 **70%**！（使用编译优化+UPX压缩技术）
+> 🔥 缩小tailscale体积 **70%**！（使用编译优化+UPX压缩技术）  
+> 🛠️ 可以帮助您升级您的旧版本OpenWrt设备上的旧版本Tailscale
 
 ---
 
@@ -17,12 +18,12 @@
 
 | 架构类型        | 测试情况      | 测试设备 | 测试系统环境 |
 |-----------------|---------------|----------|--------------|
-| `i386`          | 未测试✔️     | kvm虚拟机 | ImmortalWrt 24.10.0
-| `x86_64`        | 未测试✔️     | kvm虚拟机 | ImmortalWrt 24.10.0
-| `arm`           | 已测试✔️     | CMCC-XR30 | OpenWrt 23.05.0
-| `arm64`         | 未测试✔️     | R2S       | ImmortalWrt 23.05.4
-| `mips/mipsel`   | 未测试❌     |           |
-| `riscv64`       | 未测试❌     |           |
+| `i386`          | 已测试✔️     | kvm虚拟机 | ImmortalWrt 24.10.0 |
+| `x86_64`        | 已测试✔️     | kvm虚拟机 | ImmortalWrt 24.10.0 |
+| `arm`           | 已测试✔️     | CMCC-XR30 | OpenWrt 23.05.0     |
+| `arm64`         | 已测试✔️     | R2S       | ImmortalWrt 23.05.4 |
+| `mips/mipsel`   | 未测试❌     |           |                     |
+| `riscv64`       | 未测试❌     |           |                     |
 
 
 ---
@@ -32,18 +33,18 @@
 ### 🔌 推荐方式（SSH连接）
 
 ```bash
-wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh
+wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh
 ```
 
 ### 🖥️ 不支持中文的终端
 ```bash
-wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install_en_cnproxy.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh
+wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install_en_cnproxy.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh
 ```
 
 ### 📦 安装未压缩的版本（约25mb）
 使用参数`--notiny`
 ```bash
-wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh --notiny
+wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh --notiny
 ```
 
 ### 🌐 自定义代理
