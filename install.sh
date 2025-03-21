@@ -52,7 +52,8 @@ TMP_TAILSCALED='#!/bin/sh
 UPDATE_DIRECTLY="false"
 NO_TINY="false"
 
-
+# 使用自定义代理
+use_custom_proxy="false"
 # 可用proxy头
 available_proxy=""
 # 最新tailscale版本
@@ -188,19 +189,33 @@ get_tailscale_info() {
     # 超时时间（秒）
     attempt_timeout=10
 
-    for attempt_times in $attempt_range; do
-        for attempt_proxy in $URL_PROXYS; do
-            attempt_url="$attempt_proxy/$TAILSCALE_URL/download/info.txt"
-            tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "version " | awk '{print $2}')
-            file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "tailscaled-linux-${arch} " | awk '{print $2}')
+    if [ "$use_custom_proxy" == "true" ]; then
 
-            if [ -n "$tailscale_latest_version" ] && [ -n "$file_size" ]; then
-                available_proxy="$attempt_proxy"
-                break 2
-            fi
+        attempt_url="$available_proxy/$TAILSCALE_URL/download/info.txt"
+        tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "version " | awk '{print $2}')
+        file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "tailscaled-linux-${arch} " | awk '{print $2}')
 
+        if [ ! -n "$tailscale_latest_version" ] && [ ! -n "$file_size" ]; then
+            echo ""
+            echo "您的自定义代理不可用, 脚本退出..."
+            exit 1
+        fi
+
+    else
+        for attempt_times in $attempt_range; do
+            for attempt_proxy in $URL_PROXYS; do
+                attempt_url="$attempt_proxy/$TAILSCALE_URL/download/info.txt"
+                tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "version " | awk '{print $2}')
+                file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "tailscaled-linux-${arch} " | awk '{print $2}')
+
+                if [ -n "$tailscale_latest_version" ] && [ -n "$file_size" ]; then
+                    available_proxy="$attempt_proxy"
+                    break 2
+                fi
+
+            done
         done
-    done
+    fi
     
     if [ -z "$file_size" ] || ! [[ "$file_size" =~ ^[0-9]+$ ]]; then
         echo "错误: 无法获取tailscale大小"
@@ -620,6 +635,34 @@ for arg in "$@"; do
         ;;
     --update)
         UPDATE_DIRECTLY="true"
+        ;;
+    --custom-proxy)
+        while true; do
+            echo "╔═══════════════════════════════════════════════════════╗"
+            echo "║ WARNING!!!请您确认以下信息:                           ║"
+            echo "║                                                       ║"
+            echo "║ 您正在自定义GitHub代理, 请您确保您的代理有效, 否则脚  ║"
+            echo "║ 本将无法正常运行, 确保格式如下:                       ║"
+            echo "║ https://example.com                                   ║"
+            echo "║                                                       ║"
+            echo "║ 如果您有可用代理, 您可以提出issues, 我会将该代理加入  ║"
+            echo "║ 脚本, 这将帮助大家, 谢谢!!!                           ║"
+            echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
+            echo "║                                                       ║"
+            echo "╚═══════════════════════════════════════════════════════╝"
+            read -p "请输入您想要使用的代理并按回车: " custom_proxy
+            while true; do
+                echo "您自定义的代理是: $custom_proxy"
+                read -n 1 -p "您确定使用该代理吗? (y/N): " choise
+                if [ "$choise" == "y" ] || [ "$choise" == "Y" ]; then
+                    use_custom_proxy="true"
+                    available_proxy="$custom_proxy"
+                    break 2
+                else
+                    break
+                fi 
+            done
+        done
         ;;
     # TODO
     --notiny)
