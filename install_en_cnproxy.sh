@@ -168,7 +168,7 @@ get_tailscale_info() {
         tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "version " | awk '{print $2}')
         file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "$tailscale_file_name " | awk '{print $2}')
 
-        if [ ! -n "$tailscale_latest_version" ] && [ ! -n "$file_size" ]; then
+        if [ -z "$tailscale_latest_version" ] && [ -z "$file_size" ]; then
             echo ""
             echo "Your custom proxy is unavailable. Exiting..."
             exit 1
@@ -385,7 +385,7 @@ tailscale_starter() {
     chmod +x /usr/bin/tailscale
     chmod +x /usr/bin/tailscaled
 
-    if ! [ -n $(opkg status | grep "kmod-tun") ]; then
+    if [ -z $(opkg status | grep "kmod-tun") ]; then
         opkg update
         opkg install kmod-tun
     fi
