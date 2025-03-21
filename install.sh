@@ -53,8 +53,6 @@ USE_NORMAL_TAILSCALE=""
 # 使用自定义代理
 USE_CUSTOM_PROXY="false"
 
-# 可用proxy头
-available_proxy=""
 # 最新tailscale版本
 tailscale_latest_version=""
 

@@ -43,7 +43,6 @@ NO_TINY="false"
 USE_NORMAL_TAILSCALE=""
 USE_CUSTOM_PROXY="false"
 
-available_proxy=""
 tailscale_latest_version=""
 
 is_tailscale_installed=false
