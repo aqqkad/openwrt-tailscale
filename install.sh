@@ -325,7 +325,7 @@ persistent_install() {
     ln -sv /usr/bin/tailscaled /usr/bin/tailscale
     echo "持久安装完成!"
     tailscale_starter
-    script
+    script_exit
 
 }
 

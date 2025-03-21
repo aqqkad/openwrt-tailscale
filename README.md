@@ -1,7 +1,6 @@
 
 **简体中文** | [English](README_en.md)  
 
-# ⚠️⚠️⚠️尚未完善⚠️⚠️⚠️谨慎使用⚠️⚠️⚠️
 # 📖 适用于 OpenWrt 的 Tailscale 一键安装脚本
 
 ![GitHub release](https://img.shields.io/github/v/release/GuNanOvO/openwrt-tailscale?style=flat-square)
@@ -88,7 +87,7 @@ wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-t
 
 ### 📦 脚本核心逻辑
 1. **持久安装**  
-   - 将tailscaled二进制文件置于`/usr/bin`，使用`ln -sv tailscaled tailscale`链接tailscaled到tailscale，仅需大约7mb即可正常使用tailscale服务。即便所需空间仅5mb,但我们仍希望您尽量保持存储空间有15mb时才使用持久化安装。
+   - 将tailscaled二进制文件置于`/usr/bin`，使用`ln -sv tailscaled tailscale`链接tailscaled到tailscale，仅需大约 **7mb** 即可正常使用tailscale服务。即便所需空间仅 **7mb** ,但我们仍希望您尽量保持存储空间有 **20mb** 时才使用持久化安装。
 
 2. **临时安装**  
    - 将tailscaled二进制文件至于`/tmp`，同样使用`ln -sv tailscaled tailscale`链接tailscaled到tailscale，由于至于/tmp目录，该安装方式会占用设备内存。每次重启后，会调用到脚本进行重新下载tailscale。

@@ -183,14 +183,39 @@ jobs:
             checksums.txt
             info.txt
           body: |
-            Small ${{ env.SOFTWARE_NAME }} build ${{ env.TAG }}
+            🚀 **Small ${{ env.SOFTWARE_NAME }} build ${{ env.TAG }}**
 
-            For a complete changelog go to https://github.com/${{ env.REPO }}/releases/tag/${{ env.TAG }}
+            📜 完整更新日志请访问：  
+            https://github.com/${{ env.REPO }}/releases/tag/${{ env.TAG }}
 
-            This release was created by:
+            🔧 **本次构建包含以下优化步骤：**
 
-            * Building a combined binary of `tailscale` and `tailscaled`
-            * Using the build option `--extra-small`
-            * Compressing the binary with UPX
+            * 🛠️ 将 `tailscale` 与 `tailscaled` 合并为单一二进制文件  
+            * 📦 使用 `--extra-small` 极简构建选项  
+            * 🗜️ 通过 UPX 压缩工具对二进制文件进行压缩  
 
-            To use both programs, rename `tailscaled-OS-ARCH` to `tailscaled` and create a symbolic (`ln -sv tailscaled tailscale`) link.
+            ---
+
+            🔒 **关于 `normal` 后缀构建的说明：**  
+            带有 `normal` 后缀的构建版本**未使用 UPX 压缩**。  
+            这可能会提供更好的安全性，因为 UPX 压缩有时会触发安全扫描的误报。  
+            如果安全性是优先考虑的因素，建议使用 `normal` 版本。
+
+            ---
+
+            📜 For a complete changelog, go to:  
+            https://github.com/${{ env.REPO }}/releases/tag/${{ env.TAG }}
+            
+            🔧 **This release was created by:**
+            
+            * 🛠️ Building a combined binary of `tailscale` and `tailscaled`  
+            * 📦 Using the build option `--extra-small`  
+            * 🗜️ Compressing the binary with UPX  
+            
+            ---
+            
+            🔒 **Note about `normal` suffix builds:**  
+            The builds with the `normal` suffix are **not compressed with UPX**.  
+            This may provide better security, as UPX compression can sometimes trigger false positives in security scans.  
+            If security is a priority, consider using the `normal` version.
+

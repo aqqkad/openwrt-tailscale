@@ -236,7 +236,7 @@ persistent_install() {
     ln -sv /usr/bin/tailscaled /usr/bin/tailscale
     echo "Persistent installation complete!"
     tailscale_starter
-    script
+    script_exit
 }
 
 # Function: Switch Temp to Persistent

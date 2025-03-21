@@ -1,6 +1,5 @@
 [简体中文](README.md) | **English**  
 
-# ⚠️⚠️⚠️ Not Fully Developed Yet ⚠️⚠️⚠️ Use with Caution ⚠️⚠️⚠️
 # 📖 One-Click Installation Script for Tailscale on OpenWrt
 
 ![GitHub release](https://img.shields.io/github/v/release/GuNanOvO/openwrt-tailscale?style=flat-square)
@@ -74,7 +73,7 @@ Utilizes the `--extra-small` compilation flag from Tailscale's [official documen
 ### 📦 Core Script Logic
 
 1. **Persistent Installation**  
-   - Places the `tailscaled` binary in `/usr/bin`, creating a symbolic link using `ln -sv tailscaled tailscale`. Only **7MB** of storage is required to run Tailscale. Although the minimum space requirement is **5MB**, we recommend having at least **15MB** for a stable persistent installation.
+   - Places the `tailscaled` binary in `/usr/bin`, creating a symbolic link using `ln -sv tailscaled tailscale`. Only **7MB** of storage is required to run Tailscale. Although the minimum space requirement is **7MB**, we recommend having at least **20MB** for a stable persistent installation.
 
 2. **Temporary Installation**  
    - Places the `tailscaled` binary in `/tmp`, creating a symbolic link as above. Since it is stored in the `/tmp` directory, this method **uses device RAM**. Upon reboot, the script will automatically re-download Tailscale.
