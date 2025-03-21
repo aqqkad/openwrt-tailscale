@@ -50,7 +50,7 @@ wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-t
    🌐 必须能访问 GitHub 和代理镜像站
 
 3. **兼容性**  
-   ⚠️ 多数设备架构未经过测试，如果您测试可用，麻烦您提出issus,我会尽快声明已测试
+   ⚠️ 多数设备架构未经过测试，如果您测试可用，麻烦您提出issues,我会尽快声明已测试
 
 
 ---
