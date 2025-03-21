@@ -446,7 +446,7 @@ option_menu() {
         menu_operations=""
         option_index=1
 
-        menu_items="$option_index).Show Basic Info"
+        menu_items="$option_index).Show-Basic-Info"
         menu_operations="show_info"
         option_index=$((option_index + 1))
 
