@@ -674,7 +674,7 @@ for arg in "$@"; do
                 read -n 1 -p "您确定使用该代理吗? (y/N): " choise
                 if [ "$choise" == "y" ] || [ "$choise" == "Y" ]; then
                     USE_CUSTOM_PROXY="true"
-                    available_proxy="$custom_proxy"
+                    available_proxy="$custom_proxy/https://github.com/"
                     break 2
                 else
                     break
