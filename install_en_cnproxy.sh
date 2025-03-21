@@ -385,7 +385,7 @@ tailscale_starter() {
     chmod +x /usr/bin/tailscale
     chmod +x /usr/bin/tailscaled
 
-    if [ ! -n $(opkg status | grep "kmod-tun") ]; then
+    if ! [ -n $(opkg status | grep "kmod-tun") ]; then
         opkg update
         opkg install kmod-tun
     fi
