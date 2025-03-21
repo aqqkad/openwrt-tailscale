@@ -1,102 +1,70 @@
 #!/bin/sh
 
-# 脚本信息
-SCRIPT_VERSION="v1.01"
-SCRIPT_DATE="2025/03/18"
+# Script Information
+SCRIPT_VERSION="v1.04"
+SCRIPT_DATE="2025/03/22"
 script_info() {
     echo "#╔╦╗┌─┐ ┬ ┬  ┌─┐┌─┐┌─┐┬  ┌─┐  ┌─┐┌┐┌  ╔═╗┌─┐┌─┐┌┐┌ ╦ ╦ ┬─┐┌┬┐  ╦ ┌┐┌┌─┐┌┬┐┌─┐┬  ┬  ┌─┐┬─┐#"
     echo "# ║ ├─┤ │ │  └─┐│  ├─┤│  ├┤   │ ││││  ║ ║├─┘├┤ │││ ║║║ ├┬┘ │   ║ │││└─┐ │ ├─┤│  │  ├┤ ├┬┘#"
     echo "# ╩ ┴ ┴ ┴ ┴─┘└─┘└─┘┴ ┴┴─┘└─┘  └─┘┘└┘  ╚═╝┴  └─┘┘└┘ ╚╩╝ ┴└─ ┴   ╩ ┘└┘└─┘ ┴ ┴ ┴┴─┘┴─┘└─┘┴└─#"
     echo "┌────────────────────────────────────────────────────────────────────────────────────────┐"
-    echo "│ 一个用于在OpenWrt上安装Tailscale或更新Tailscale或...的一个脚本。                       │"
-    echo "│ 项目地址: https://github.com/GuNanOvO/openwrt-tailscale                                │"
-    echo "│ 脚本版本: "$SCRIPT_VERSION"                                                                        │"
-    echo "│ 更新日期: "$SCRIPT_DATE"                                                                   │"
-    echo "│ 感谢你的使用, 如有帮助, 还请点颗star /<3                                               │"
+    echo "│ A script for installing/updating Tailscale on OpenWrt and related operations.           │"
+    echo "│ Project URL: https://github.com/GuNanOvO/openwrt-tailscale                              │"
+    echo "│ Script Version: "$SCRIPT_VERSION"                                                                        │"
+    echo "│ Update Date: "$SCRIPT_DATE"                                                                   │"
+    echo "│ Thanks for using! If helpful, please give us a star /<3                                  │"
     echo "└────────────────────────────────────────────────────────────────────────────────────────┘"
 }
 
-# 基本配置
-# https://github.com/gunanovo/openwrt-tailscale/releases/latest
-# https://github.com/gunanovo/openwrt-tailscale/releases/latest/download/version.txt
-
-# TAILSCALE 文件 URL
-TAILSCALE_URL="gunanovo/openwrt-tailscale/releases/latest"
-# TODO
-TAILSCALE_NORMAL_URL="gunanovo/openwrt-tailscale/releases/latest"
-# tailscale 文件 URL头
-URL_PROXYS="https://ghfast.top/https://github.com
-https://cf.ghproxy.cc/https://github.com
-https://www.ghproxy.cc/https://github.com
-https://gh-proxy.com/https://github.com
-https://ghproxy.cc/https://github.com
-https://ghproxy.cn/https://github.com
-https://www.ghproxy.cn/https://github.com
-https://github.com"
-# init.d/tailscale 文件 URL
-INIT_URL="/gunanovo/openwrt-tailscale/blob/main/etc/init.d/tailscale"
-# OpenWrt 可写存储分区，通常是 /overlay
-MOUNT_POINT="/overlay"
-# tmp tailscale
+# Basic Configuration
+TAILSCALE_URL="https://github.com/gunanovo/openwrt-tailscale/releases/latest"
+INIT_URL="https://github.com//gunanovo/openwrt-tailscale/blob/main/etc/init.d/tailscale"
+MOUNT_POINT="/"
 TMP_TAILSCALE='#!/bin/sh
                 set -e
 
-                /usr/bin/install.sh --update
+                /usr/bin/install.sh --tmpinstall $USE_NORMAL_TAILSCALE
                 /tmp/tailscale "$@"'
-# tmp tailscaled
 TMP_TAILSCALED='#!/bin/sh
                 set -e
 
                 /tmp/tailscaled "$@"'
 
-UPDATE_DIRECTLY="false"
+TMP_INSTALL="false"
 NO_TINY="false"
+USE_NORMAL_TAILSCALE=""
 
-
-# 可用proxy头
-available_proxy=""
-# 最新tailscale版本
 tailscale_latest_version=""
 
-# tailscale是否已安装
 is_tailscale_installed=false
-# tailscale的安装状态（持久安装/临时安装）
 tailscale_install_status="none"
-# 是否查找到任何tailscale文件
 found_tailscale_file=false
-# tailscale版本号
 tailscale_version=""
 
-# 剩余空间大小bytes
 free_space=""
-# 文件大小bytes
 file_size=""
-# 剩余空间大小mb
 free_space_mb=""
-# 文件大小mb
 file_size_mb=""
-# tailscale是否可以被永久安装，即存储空间是否足够安装
 tailscale_persistent_installable=""
 
 show_init_progress_bar="true"
 
-
-# 函数：设置DNS
-set_system_dns() {
-cat <<EOF > /etc/resolv.conf
-search lan
-nameserver 223.5.5.5
-nameserver 119.29.29.29
-EOF
-}
-
-# 函数：获取系统架构
+# Function: Get system architecture
 get_system_arch() {
     arch_=$(uname -m)
     endianness=""
 
     case "$arch_" in
         i386)
+            arch=386
+            ;;
+        i486)
+            arch=386
+            ;;
+        i586)
+            arch=386
+            ;;
+        i686)
             arch=386
             ;;
         x86_64)
@@ -118,24 +86,25 @@ get_system_arch() {
         riscv64)
             arch=riscv64
             ;;
-        *)
-            echo "INSTALL: --------------------------------------------"
-            echo "当前机器的架构是 [${arch_}${endianness}]"
-            echo "脚本不支持您的机器"
-            echo "------------------------------------------------------"
+        *)  
+            echo "╔═══════════════════════════════════════════════════════╗"
+            echo "   WARNING!!!                                            "
+            echo "                                                        "
+            echo "   Device architecture detected: [${arch_}${endianness}] "
+            echo "   This script does not currently support your device   "
+            echo "                                                        "
+            echo "╚═══════════════════════════════════════════════════════╝"
             exit 1
             ;;
     esac
 }
 
-# 函数：检测是否已经安装过tailscale
+# Function: Check Tailscale installation status
 check_tailscale_install_status() {
-    # 检查 tailscale version 是否有输出并提取版本号
     if command -v tailscale >/dev/null 2>&1; then
         version_output=$(tailscale version 2>/dev/null)
         if [ -n "$version_output" ]; then
-            # 从输出中提取版本号
-            tailscale_version=$(echo "$version_output" | sed -n '1p' | tr -d '[:space:]')
+            tailscale_version=v$(echo "$version_output" | sed -n '1p' | tr -d '[:space:]')
             if [ -f "/usr/bin/tailscaled" ] && [ -f "/tmp/tailscaled" ]; then
                 tailscale_install_status="temp"
             elif [ -f "/usr/bin/tailscaled" ]; then
@@ -144,65 +113,46 @@ check_tailscale_install_status() {
             is_tailscale_installed="true"
         fi
     fi
-
 }
 
-# 函数：检查剩余存储空间（单位：bytes）
+# Function: Check free space
 get_free_space() {
-    # 检查 MOUNT_POINT 是否定义
     if [ -z "$MOUNT_POINT" ]; then
-        echo "错误: MOUNT_POINT 未定义"
+        echo "Error: MOUNT_POINT undefined"
         exit 1
     fi
 
-    # 使用 df -k 获取以 KB（1024 字节）为单位的剩余空间
-    free_space_kb=$(df -k "$MOUNT_POINT" | tail -n 1 | awk '{print $4}')
+    free_space_kb=$(df -Pk "$MOUNT_POINT" | awk 'NR==2 {print $(NF-2)}')
     
-    # 检查输出是否有效
     if [ -z "$free_space_kb" ] || ! echo "$free_space_kb" | grep -q '^[0-9]\+$'; then
-        echo "错误: 无法获取 $MOUNT_POINT 的剩余空间"
+        echo "Error: Failed to get free space for $MOUNT_POINT"
         exit 1
     fi
 
-    # 将 KB 转换为 bytes（1KB = 1024 bytes）
     free_space=$((free_space_kb * 1024))
     free_space_mb=$(expr $free_space / 1024 / 1024)
-    
 }
 
-# 函数：获取 GitHub 文件大小（单位：bytes）
+# Function: Get Tailscale info
 get_tailscale_info() {
-    # 先简单wget一下releases的版本，以此确定可用的代理头
-    # 尝试3次
-    attempt_range="1 2 3"
-    # 超时时间（秒）
-    attempt_timeout=10
-
-    for attempt_times in $attempt_range; do
-        for attempt_proxy in $URL_PROXYS; do
-            attempt_url="$attempt_proxy/$TAILSCALE_URL/download/version.txt"
-            tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | sed 's/^v//')
-
-            if [ -n "$tailscale_latest_version" ]; then
-                available_proxy="$attempt_proxy"
-                break 2
-            fi
-
-        done
-    done
     
-    file_size=$(wget --spider --max-redirect=10 --server-response "$available_proxy/$TAILSCALE_URL/download/tailscaled-linux-${arch}" 2>&1 | 
-        grep 'Content-Length' | 
-        awk '{print $2}' | 
-        tail -n 1)
+    if [ "$NO_TINY" == "true" ]; then
+        tailscale_file_name="tailscaled-linux-${arch}-normal"
+    else
+        tailscale_file_name="tailscaled-linux-${arch}"
+    fi
+    attempt_url="$TAILSCALE_URL/download/info.txt"
+    tailscale_latest_version=$(wget -qO- "$attempt_url" | grep "version " | awk '{print $2}')
+    file_size=$(wget -qO- "$attempt_url" | grep "$tailscale_file_name " | awk '{print $2}')
 
+    
     if [ -z "$file_size" ] || ! [[ "$file_size" =~ ^[0-9]+$ ]]; then
-        echo "错误: 无法获取tailscale大小"
-        echo "1. 确保网络连接正常"
-        echo "2. 报告开发者"
+        echo "Error: Failed to get Tailscale size"
+        echo "1. Check network connection"
+        echo "2. Retry"
+        echo "3. Report to developer"
         exit 1
     else
-        # 比较并判断是否可以持久安装tailscale
         if [ "$free_space" -gt "$file_size" ]; then
             tailscale_persistent_installable=true
         else
@@ -213,15 +163,11 @@ get_tailscale_info() {
     file_size_mb=$(expr $file_size / 1024 / 1024)
 }
 
-# 函数：更新
+# Function: Update
 update() {
-    echo "正在更新"
-    if [ "$UPDATE_DIRECTLY" = "true" ]; then
-        if [ "$tailscale_install_status" = "temp" ]; then
-            temp_install "true"
-        elif [ "$tailscale_install_status" = "persistent" ]; then
-            persistent_install "true"
-        fi
+    echo "Updating..."
+    if [ "$TMP_INSTALL" = "true" ]; then
+        temp_install "true"
     else
         if [ "$tailscale_install_status" = "temp" ]; then
             temp_install
@@ -231,19 +177,25 @@ update() {
     fi
 }
 
-# 函数：卸载
+# Function: Remove
 remove() { 
     while true; do
-        read -n 1 -p "确认卸载tailscale吗？(y/N): " choice
+        echo "╔═══════════════════════════════════════════════════════╗"
+        echo "║ WARNING!!! Please confirm:                            ║"
+        echo "║                                                       ║"
+        echo "║ Uninstalling Tailscale will disable all related       ║"
+        echo "║ services. You may lose connection if currently using  ║"
+        echo "║ Tailscale. Confirm operation to avoid data loss!      ║"
+        echo "╚═══════════════════════════════════════════════════════╝"
+
+        read -n 1 -p "Confirm uninstall Tailscale? (y/N): " choice
 
         if [ "$choice" = "Y" ] || [ "$choice" = "y" ]; then
             tailscale_stoper
 
-            # remove指定目录的 tailscale 或 tailscaled 文件
             directories="/etc/init.d /etc /etc/config /usr/bin /tmp /var/lib"
             binaries="tailscale tailscaled"
 
-            # 使用 for 循环遍历目录和文件
             for dir in $directories; do
                 for bin in $binaries; do
                     if [ -f "$dir/$bin" ]; then
@@ -253,65 +205,57 @@ remove() {
             done
 
             ip link delete tailscale0
-
             break
-
         else
-            echo "取消卸载"
+            echo "Uninstall canceled"
             break
         fi
     done
 }
 
-# 函数：持久安装
+# Function: Persistent Install
 persistent_install() {
     confirm2persistent_install=$1
     if [ "$confirm2persistent_install" != "true" ]; then
         echo "╔═══════════════════════════════════════════════════════╗"
-        echo "║ WARNING!!!请您确认以下信息:                           ║"
+        echo "║ WARNING!!! Please confirm:                            ║"
         echo "║                                                       ║"
-        echo "║ 使用持久安装时, 请您确认您的openwrt的剩余空间至少大于 ║"
-        echo "║ "$file_size_mb", 推荐大于15M.                         ║"
-        echo "║ 安装时产生任何错误, 您可以于:                         ║"
+        echo "║ Ensure free space ≥ $file_size_mb MB, recommended ≥ $(expr $file_size_mb \* 3)M. ║"
+        echo "║ Report issues at:                                     ║"
         echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
-        echo "║ 提出反馈. 谢谢您的使用! /<3                           ║"
-        echo "║                                                       ║"
         echo "╚═══════════════════════════════════════════════════════╝"
-        read -n 1 -p "确认采用持久安装方式安装tailscale吗？(y/N): " choice
+        read -n 1 -p "Confirm persistent install? (y/N): " choice
 
-        if [ "$choice" != "Y" ] || [ "$choice" != "y" ]; then
+        if [ "$choice" != "Y" ] && [ "$choice" != "y" ]; then
             exit
         fi
-    echo "正在持久安装"
+    echo "Persistent installing..."
     fi 
     downloader
     mv /tmp/tailscaled /usr/bin
     ln -sv /usr/bin/tailscaled /usr/bin/tailscale
+    echo "Persistent installation complete!"
     tailscale_starter
-    echo "持久安装完成"
-
+    script
 }
 
-# 函数：临时安装切换到持久安装
+# Function: Switch Temp to Persistent
 temp_to_persistent() {
     confirm2persistent_install=$1
     if [ "$confirm2persistent_install" != "true" ]; then
         echo "╔═══════════════════════════════════════════════════════╗"
-        echo "║ WARNING!!!请您确认以下信息:                           ║"
+        echo "║ WARNING!!! Please confirm:                            ║"
         echo "║                                                       ║"
-        echo "║ 使用持久安装时, 请您确认您的openwrt的剩余空间至少大于 ║"
-        echo "║ "$file_size_mb", 推荐大于15M.                         ║"
-        echo "║ 安装时产生任何错误, 您可以于:                         ║"
+        echo "║ Ensure free space ≥ $file_size_mb MB, recommended ≥ $(expr $file_size_mb \* 3)M. ║"
+        echo "║ Report issues at:                                     ║"
         echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
-        echo "║ 提出反馈. 谢谢您的使用! /<3                           ║"
-        echo "║                                                       ║"
         echo "╚═══════════════════════════════════════════════════════╝"
-        read -n 1 -p "确认采用持久安装方式安装tailscale吗？(y/N): " choice
+        read -n 1 -p "Confirm persistent install? (y/N): " choice
 
-        if [ "$choice" != "Y" ] || [ "$choice" != "y" ]; then
+        if [ "$choice" != "Y" ] && [ "$choice" != "y" ]; then
             exit
         fi
-        echo "正在持久安装"
+        echo "Switching to persistent install..."
     fi
     tailscale_stoper
     rm -rf /tmp/tailscale
@@ -319,90 +263,97 @@ temp_to_persistent() {
     rm -rf /usr/bin/tailscale
     rm -rf /usr/bin/tailscaled
     persistent_install
+    script
 }
 
-# 函数：临时安装
+# Function: Temporary Install
 temp_install() { 
     confirm2temp_install=$1
     if [ "$confirm2temp_install" != "true" ]; then
         echo "╔═══════════════════════════════════════════════════════╗"
-        echo "║ WARNING!!!请您确认以下信息:                           ║"
+        echo "║ WARNING!!! Please confirm:                            ║"
         echo "║                                                       ║"
-        echo "║ 临时安装是将tailscale文件置于/tmp目录, /tmp目录会在重 ║"
-        echo "║ 启设备后清空. 如果该脚本在重启后重新下载tailscale失败 ║"
-        echo "║ 则tailscale将无法正常使用, 您所有依托于tailscale的服  ║"
-        echo "║ 务都将失效, 请您明悉并确定该讯息, 以免造成损失. 谢谢! ║"
-        echo "║ 如果可以持久安装，推荐您采取持久安装方式!             ║"
-        echo "║ 安装时产生任何错误, 您可以于:                         ║"
+        echo "║ Temp install uses /tmp directory (cleared on reboot). ║"
+        echo "║ Services may fail if script fails after reboot.       ║"
+        echo "║ Recommended to use persistent install if possible.    ║"
+        echo "║ Report issues at:                                     ║"
         echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
-        echo "║ 提出反馈. 谢谢您的使用! /<3                           ║"
-        echo "║                                                       ║"
         echo "╚═══════════════════════════════════════════════════════╝"
-        read -n 1 -p "确认采用临时安装方式安装tailscale吗？(y/N): " choice
+        read -n 1 -p "Confirm temporary install? (y/N): " choice
 
-        if [ "$choice" != "Y" ] || [ "$choice" != "y" ]; then
+        if [ "$choice" != "Y" ] && [ "$choice" != "y" ]; then
             exit
         fi
-    echo "正在临时安装"
+        echo "Temporary installing..."
     fi 
     downloader
     ln -sv /tmp/tailscaled /tmp/tailscale
+    if [ "$NO_TINY" == "true" ]; then
+        USE_NORMAL_TAILSCALE="--notiny"
+    fi
     echo "$TMP_TAILSCALE" > /usr/bin/tailscale
     echo "$TMP_TAILSCALED" > /usr/bin/tailscaled
-    echo "临时安装完成"
+    echo "Temporary installation complete!"
     tailscale_starter
+    script_exit
 }
 
-# 函数：持久安装切换到临时安装
+# Function: Switch Persistent to Temp
 persistent_to_temp() {
     confirm2temp_install=$1
     if [ "$confirm2temp_install" != "true" ]; then
         echo "╔═══════════════════════════════════════════════════════╗"
-        echo "║ WARNING!!!请你确认以下信息:                           ║"
+        echo "║ WARNING!!! Please confirm:                            ║"
         echo "║                                                       ║"
-        echo "║ 临时安装是将tailscale文件置于/tmp目录, /tmp目录会在重 ║"
-        echo "║ 启设备后清空. 如果该脚本在重启后重新下载tailscale失败 ║"
-        echo "║ 则tailscale将无法正常使用, 您所有依托于tailscale的服  ║"
-        echo "║ 务都将失效, 请您明悉并确定该讯息, 以免造成损失. 谢谢! ║"
-        echo "║ 如果可以持久安装，推荐您采取持久安装方式!             ║"
-        echo "║ 安装时产生任何错误, 您可以于:                         ║"
+        echo "║ Temp install uses /tmp directory (cleared on reboot). ║"
+        echo "║ Services may fail if script fails after reboot.       ║"
+        echo "║ Recommended to use persistent install if possible.    ║"
+        echo "║ Report issues at:                                     ║"
         echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
-        echo "║ 提出反馈. 谢谢您的使用! /<3                           ║"
-        echo "║                                                       ║"
         echo "╚═══════════════════════════════════════════════════════╝"
-        read -n 1 -p "确认采用临时安装方式安装tailscale吗？(y/N): " choice
+        read -n 1 -p "Confirm temporary install? (y/N): " choice
 
-        if [ "$choice" != "Y" ] || [ "$choice" != "y" ]; then
+        if [ "$choice" != "Y" ] && [ "$choice" != "y" ]; then
             exit
         fi
-
     fi 
-    echo "正在切换到临时安装"
+    echo "Switching to temporary install..."
     tailscale_stoper
     rm -rf /usr/bin/tailscale
     rm -rf /usr/bin/tailscaled
     temp_install "true"
+    script_exit
 }
 
-# 函数：下载器
+# Function: Downloader
 downloader() {
-    wget -cO /tmp/tailscaled "$available_proxy/$TAILSCALE_URL/download/tailscaled-linux-${arch}"
-    wget -cO /etc/init.d/tailscale "$available_proxy/$INIT_URL"
+    if [ "$NO_TINY" == "true" ]; then
+        wget -cO /tmp/tailscaled "$TAILSCALE_URL/download/tailscaled-linux-${arch}-normal"
+    else
+        wget -cO /tmp/tailscaled "$TAILSCALE_URL/download/tailscaled-linux-${arch}"
+    fi
+        wget -cO /etc/init.d/tailscale "$INIT_URL"
 }
 
-# 函数：tailscale服务启动器
+# Function: Start Tailscale
 tailscale_starter() {
-    echo "正在启动tailscale..."
+    echo ""
+    echo "Starting Tailscale..."
+    chmod +x /etc/init.d/tailscale
+    chmod +x /usr/bin/tailscale
+    chmod +x /usr/bin/tailscaled
     /etc/init.d/tailscale start
 
     sleep 3
 
     tailscale up
-    echo "tailscale启动完成"
+    echo "Tailscale started"
+    echo ""
 }
 
-# 函数：tailscale服务停止器
+# Function: Stop Tailscale
 tailscale_stoper() {
+    echo ""
     if [ "$tailscale_install_status" = "temp" ]; then
         /etc/init.d/tailscale stop
         /tmp/tailscale down --accept-risk=lose-ssh
@@ -414,133 +365,137 @@ tailscale_stoper() {
         /usr/bin/tailscale logout
         /etc/init.d/tailscale disable
     fi
+    echo ""
 }
 
-# 函数：初始化
+# Function: Initialize
 init() {
     show_init_progress_bar=$1
-    #设置系统DNS #获取系统架构 #检查是否安装过 #获取磁盘剩余空间 #获取tailscale文件大小
-    local functions="set_system_dns get_system_arch check_tailscale_install_status get_free_space get_tailscale_info"
-    local function_count=5
+    local functions="get_system_arch check_tailscale_install_status get_free_space get_tailscale_info"
+    local function_count=4
     local total=50
     local progress=0
     
     if [ "$show_init_progress_bar" != "false" ]; then
-        # 0%进度条
-        printf "\r初始化中: [%-50s] %3d%%" "$(printf '='%.0s $(seq 1 "$progress"))" "$((progress * 2))"
+        printf "\rInitializing: [%-50s] %3d%%" "$(printf '='%.0s $(seq 1 "$progress"))" "$((progress * 2))"
         
         for function in $functions; do
-            printf "\r初始化中: [%-50s] %3d%%" "$(printf '='%.0s $(seq 1 "$progress"))" "$((progress * 2))"
+            printf "\rInitializing: [%-50s] %3d%%" "$(printf '='%.0s $(seq 1 "$progress"))" "$((progress * 2))"
             eval "$function"
             progress=$((progress + $((total / $function_count))))
-
         done
     
-        # 100%进度条
-        printf "\r  完成  : [%-50s] %3d%%" "$(printf '='%.0s $(seq 1 "$progress"))" "$((progress * 2))"
+        printf "\r   Done  : [%-50s] %3d%%" "$(printf '='%.0s $(seq 1 "$progress"))" "$((progress * 2))"
     else
         for function in $functions; do
             eval "$function"
         done
     fi
-
 }
 
-# 函数：显示基本信息
+# Function: Exit message
+script_exit() {
+        echo "┌───────────────────────────────────────────────────────┐"
+        echo "│ THANKS!!! Appreciate your trust and usage!            │"
+        echo "│                                                       │"
+        echo "│ Please consider giving a star if helpful:             │"
+        echo "│ https://github.com/GuNanOvO/openwrt-tailscale/        │"
+        echo "│ Report issues at:                                     │"
+        echo "│ https://github.com/GuNanOvO/openwrt-tailscale/issues  │"
+        echo "└───────────────────────────────────────────────────────┘"
+        exit 0
+}
+
+# Function: Show info
 show_info() {
-    echo "=============== 基本信息 ==============="
-    echo "│ 当前机器架构：[${arch}${endianness}]"
+    echo "╔═════════════════════ Basic Information ══════════════════╗"
+    echo "   Device Architecture: [${arch}${endianness}]"
     if [ "$is_tailscale_installed" = "true" ]; then
-        echo "│ tailscale安装状态: 已安装"
+        echo "   Tailscale Status: Installed"
         if [ "$tailscale_install_status" = "temp" ]; then
-        echo "│ tailscale安装模式: 临时安装"
+        echo "   Install Mode: Temporary"
         elif [ "$tailscale_install_status" = "persistent" ]; then
-        echo "│ tailscale安装模式: 持久安装"
+        echo "   Install Mode: Persistent"
         fi
-        echo "│ tailscale版本: $tailscale_version"
+        echo "   Tailscale Version: $tailscale_version"
     else 
-        echo "│ tailscale安装状态: 未安装"
-        echo "│ tailscale版本: 未安装"
+        echo "   Tailscale Status: Not Installed"
+        echo "   Tailscale Version: N/A"
     fi
-
-    echo "│ tailscale最新版本: $tailscale_latest_version"
-    echo "│ 剩余存储空间：$free_space B / $(expr $free_space / 1024 / 1024) M"
-    echo "│ tailscale文件大小: $file_size B / $(expr $file_size / 1024 / 1024) M" 
-    # 比较并判断
+    echo "   Latest Tailscale Version: $tailscale_latest_version"
+    echo "   Free Space: $free_space B / $(expr $free_space / 1024 / 1024) M"
+    echo "   Tailscale Size: $file_size B / $(expr $file_size / 1024 / 1024) M" 
     if [ "$free_space" -gt "$file_size" ]; then
-        echo "│ 剩余空间足以持久安装tailscale"
+        echo "   Sufficient space for persistent install"
     else
-        echo "│ 剩余空间不足以持久安装tailscale"
+        echo "   Insufficient space for persistent install"
     fi
-    echo "=============== 基本信息 ==============="
+    echo "╚═════════════════════ Basic Information ══════════════════╝"
 }
 
+# Function: Option menu
 option_menu() {
     while true; do
         menu_items=""
         menu_operations=""
         option_index=1
 
-        menu_items="$option_index).显示基本信息"
+        menu_items="$option_index).Show Basic Info"
         menu_operations="show_info"
         option_index=$((option_index + 1))
 
         if [ "$is_tailscale_installed" = "true" ] && [ $tailscale_latest_version != $tailscale_version ]; then
-            menu_items="$menu_items $option_index).更新"
+            menu_items="$menu_items $option_index).Update"
             menu_operations="$menu_operations update"
             option_index=$((option_index + 1))
         fi
 
         if [ "$is_tailscale_installed" = "true" ]; then
-            menu_items="$menu_items $option_index).卸载"
+            menu_items="$menu_items $option_index).Uninstall"
             menu_operations="$menu_operations remove"
             option_index=$((option_index + 1))
         fi
 
         if [ "$tailscale_install_status" = "temp" ] && [ "$tailscale_persistent_installable" = "true" ]; then
-            menu_items="$menu_items $option_index).切换至持久安装"
+            menu_items="$menu_items $option_index).Switch to Persistent"
             menu_operations="$menu_operations temp_to_persistent"
             option_index=$((option_index + 1))
         fi
 
         if [ "$is_tailscale_installed" = "false" ] && [ "$tailscale_persistent_installable" = "true" ]; then
-            menu_items="$menu_items $option_index).持久安装"
+            menu_items="$menu_items $option_index).Persistent Install"
             menu_operations="$menu_operations persistent_install"
             option_index=$((option_index + 1))
         fi
 
         if [ "$tailscale_install_status" = "persistent" ]; then
-            menu_items="$menu_items $option_index).切换至临时安装"
+            menu_items="$menu_items $option_index).Switch to Temporary"
             menu_operations="$menu_operations persistent_to_temp"
             option_index=$((option_index + 1))
         fi
 
         if [ "$is_tailscale_installed" = "false" ]; then
-            menu_items="$menu_items $option_index).临时安装"
+            menu_items="$menu_items $option_index).Temporary Install"
             menu_operations="$menu_operations temp_install"
             option_index=$((option_index + 1))
         fi
 
-        menu_items="$menu_items $option_index).退出"
+        menu_items="$menu_items $option_index).Exit"
         menu_operations="$menu_operations exit"
-        #option_index=$((option_index + 1))
 
-        # 显示菜单并获取用户输入
         while true; do
             echo ""
-            echo "=============== 菜单 ==============="
+            echo "┌───────────────────────── Menu ────────────────────────┐"
             
-            # 遍历选项列表，动态生成菜单
             for item in $menu_items; do
                 echo "│       $item"
             done
             echo ""
 
-            read -n 1 -p "请输入选项(0 ~ $option_index): " choice
+            read -n 1 -p "│ Enter option (0 ~ $option_index): " choice
             echo ""
             echo ""
 
-            # 判断输入是否合法
             if [ "$choice" -ge 0 ] && [ "$choice" -le "$option_index" ]; then
                 operation_index=1
                 for operation in $menu_operations; do
@@ -551,7 +506,7 @@ option_menu() {
                 done
                 echo ""
             else
-                echo "无效选项，请重试！"
+                echo "Invalid option, please retry!"
                 echo ""
                 break
             fi
@@ -559,41 +514,39 @@ option_menu() {
     done
 }
 
+# Function: Show help
 show_help() {
     echo "Tailscale on OpenWrt installer script. $SCRIPT_VERSION"
     echo "https://github.com/GuNanOvO/openwrt-tailscale"
     echo "  Usage:   "
-    echo "      --help: show help information"
-    echo "      --update: only update tailscale(no confirmation required)  "
-    echo "      --notiny: use the normal tailscale file(uncompressed)"
+    echo "      --help: Show this help"
+    echo "      --notiny: Use uncompressed version "
 }
 
-# 读取参数
+# Handle arguments
 for arg in "$@"; do
     case $arg in
     --help)
         show_help
         exit 0
         ;;
-    --update)
-        UPDATE_DIRECTLY="true"
+    --tempinstall)
+        TMP_INSTALL="true"
         ;;
-    # TODO
     --notiny)
         NO_TINY="true"
         ;;
     *)
         echo "Unknown argument: $arg"
         show_help
-        exit 1
         ;;
     esac
 done
 
-# 主程序
-
-if [ "$UPDATE_DIRECTLY" = "true" ]; then
-    init "false"
+# Main Program
+if [ "$TMP_INSTALL" = "true" ]; then
+    get_system_arch 
+    get_tailscale_info
     update
     exit 0
 fi
