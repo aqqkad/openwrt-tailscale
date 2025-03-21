@@ -81,11 +81,11 @@ jobs:
             --extra-small --box \
             -o "${{ env.FILE_NAME }}-${{ matrix.os }}-${{ matrix.platform }}" ./cmd/${{ env.FILE_NAME }}
           elif [[ "${{ matrix.platform }}" == "amd64" ]]; then
-          sudo apt-get update
-          sudo apt-get install -y musl-tools
-          CGO_ENABLED=1 CC=musl-gcc GOOS=${{ matrix.os }} GOARCH=${{ matrix.platform }} \
-          ./build_dist.sh --extra-small --box \
-          -o "${{ env.FILE_NAME }}-${{ matrix.os }}-${{ matrix.platform }}" ./cmd/${{ env.FILE_NAME }}
+            sudo apt-get update
+            sudo apt-get install -y musl-tools
+            CGO_ENABLED=1 CC=musl-gcc GOOS=${{ matrix.os }} GOARCH=${{ matrix.platform }} \
+            ./build_dist.sh --extra-small --box \
+            -o "${{ env.FILE_NAME }}-${{ matrix.os }}-${{ matrix.platform }}" ./cmd/${{ env.FILE_NAME }}
           else
             GOOS=${{ matrix.os }} GOARCH=${{ matrix.platform }} ./build_dist.sh \
             --extra-small --box \
@@ -139,6 +139,7 @@ jobs:
             if [[ "$file" == *"mips64"* || "$file" == *"mips64le"* ]]; then
               echo "Skipping UPX compression for $file due to unsupported format"
             else
+            cp "$file" "$file-normal"
               "${PWD}/upx" --lzma --best --no-progress "$file"
             fi
           done

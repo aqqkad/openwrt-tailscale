@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # 脚本信息
-SCRIPT_VERSION="v1.03"
-SCRIPT_DATE="2025/03/21"
+SCRIPT_VERSION="v1.04"
+SCRIPT_DATE="2025/03/22"
 script_info() {
     echo "#╔╦╗┌─┐ ┬ ┬  ┌─┐┌─┐┌─┐┬  ┌─┐  ┌─┐┌┐┌  ╔═╗┌─┐┌─┐┌┐┌ ╦ ╦ ┬─┐┌┬┐  ╦ ┌┐┌┌─┐┌┬┐┌─┐┬  ┬  ┌─┐┬─┐#"
     echo "# ║ ├─┤ │ │  └─┐│  ├─┤│  ├┤   │ ││││  ║ ║├─┘├┤ │││ ║║║ ├┬┘ │   ║ │││└─┐ │ ├─┤│  │  ├┤ ├┬┘#"
@@ -22,8 +22,6 @@ script_info() {
 
 # TAILSCALE 文件 URL
 TAILSCALE_URL="gunanovo/openwrt-tailscale/releases/latest"
-# TODO
-TAILSCALE_NORMAL_URL="gunanovo/openwrt-tailscale/releases/latest"
 # tailscale 文件 URL头
 URL_PROXYS="https://ghfast.top/https://github.com
 https://cf.ghproxy.cc/https://github.com
@@ -36,12 +34,12 @@ https://github.com"
 # init.d/tailscale 文件 URL
 INIT_URL="/gunanovo/openwrt-tailscale/blob/main/etc/init.d/tailscale"
 # OpenWrt 可写存储分区，通常是 /overlay
-MOUNT_POINT="/overlay"
+MOUNT_POINT="/"
 # tmp tailscale
 TMP_TAILSCALE='#!/bin/sh
                 set -e
 
-                /usr/bin/install.sh --update
+                /usr/bin/install.sh --update $USE_NORMAL_TAILSCALE
                 /tmp/tailscale "$@"'
 # tmp tailscaled
 TMP_TAILSCALED='#!/bin/sh
@@ -49,11 +47,12 @@ TMP_TAILSCALED='#!/bin/sh
 
                 /tmp/tailscaled "$@"'
 
-UPDATE_DIRECTLY="false"
+TMP_INSTALL="false"
 NO_TINY="false"
-
+USE_NORMAL_TAILSCALE=""
 # 使用自定义代理
-use_custom_proxy="false"
+USE_CUSTOM_PROXY="false"
+
 # 可用proxy头
 available_proxy=""
 # 最新tailscale版本
@@ -188,12 +187,17 @@ get_tailscale_info() {
     attempt_range="1 2 3"
     # 超时时间（秒）
     attempt_timeout=10
+    if [ "$NO_TINY" == "true" ]; then
+        tailscale_file_name="tailscaled-linux-${arch}-normal"
+    else
+        tailscale_file_name="tailscaled-linux-${arch}"
+    fi
 
-    if [ "$use_custom_proxy" == "true" ]; then
+    if [ "$USE_CUSTOM_PROXY" == "true" ]; then
 
         attempt_url="$available_proxy/$TAILSCALE_URL/download/info.txt"
         tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "version " | awk '{print $2}')
-        file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "tailscaled-linux-${arch} " | awk '{print $2}')
+        file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "$tailscale_file_name " | awk '{print $2}')
 
         if [ ! -n "$tailscale_latest_version" ] && [ ! -n "$file_size" ]; then
             echo ""
@@ -206,7 +210,7 @@ get_tailscale_info() {
             for attempt_proxy in $URL_PROXYS; do
                 attempt_url="$attempt_proxy/$TAILSCALE_URL/download/info.txt"
                 tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "version " | awk '{print $2}')
-                file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "tailscaled-linux-${arch} " | awk '{print $2}')
+                file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "$tailscale_file_name " | awk '{print $2}')
 
                 if [ -n "$tailscale_latest_version" ] && [ -n "$file_size" ]; then
                     available_proxy="$attempt_proxy"
@@ -238,12 +242,8 @@ get_tailscale_info() {
 # 函数：更新
 update() {
     echo "正在更新"
-    if [ "$UPDATE_DIRECTLY" = "true" ]; then
-        if [ "$tailscale_install_status" = "temp" ]; then
-            temp_install "true"
-        elif [ "$tailscale_install_status" = "persistent" ]; then
-            persistent_install "true"
-        fi
+    if [ "$TMP_INSTALL" = "true" ]; then
+        temp_install "true"
     else
         if [ "$tailscale_install_status" = "temp" ]; then
             temp_install
@@ -303,7 +303,7 @@ persistent_install() {
         echo "║ WARNING!!!请您确认以下信息:                           ║"
         echo "║                                                       ║"
         echo "║ 使用持久安装时, 请您确认您的openwrt的剩余空间至少大于 ║"
-        echo "║ "$file_size_mb", 推荐大于15M.                         ║"
+        echo "║ "$file_size_mb", 推荐大于$(expr $file_size_mb \* 3)M.                         ║"
         echo "║ 安装时产生任何错误, 您可以于:                         ║"
         echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
         echo "║ 提出反馈. 谢谢您的使用! /<3                           ║"
@@ -333,7 +333,7 @@ temp_to_persistent() {
         echo "║ WARNING!!!请您确认以下信息:                           ║"
         echo "║                                                       ║"
         echo "║ 使用持久安装时, 请您确认您的openwrt的剩余空间至少大于 ║"
-        echo "║ "$file_size_mb", 推荐大于15M.                         ║"
+        echo "║ "$file_size_mb", 推荐大于$(expr $file_size_mb \* 3)M.                         ║"
         echo "║ 安装时产生任何错误, 您可以于:                         ║"
         echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
         echo "║ 提出反馈. 谢谢您的使用! /<3                           ║"
@@ -377,10 +377,13 @@ temp_install() {
         if [ "$choice" != "Y" ] && [ "$choice" != "y" ]; then
             exit
         fi
-    echo "正在临时安装..."
+        echo "正在临时安装..."
     fi 
     downloader
     ln -sv /tmp/tailscaled /tmp/tailscale
+    if [ "$NO_TINY" == "true" ]; then
+        USE_NORMAL_TAILSCALE="--notiny"
+    fi
     echo "$TMP_TAILSCALE" > /usr/bin/tailscale
     echo "$TMP_TAILSCALED" > /usr/bin/tailscaled
     echo "临时安装完成!"
@@ -422,8 +425,13 @@ persistent_to_temp() {
 
 # 函数：下载器
 downloader() {
-    wget -cO /tmp/tailscaled "$available_proxy/$TAILSCALE_URL/download/tailscaled-linux-${arch}"
-    wget -cO /etc/init.d/tailscale "$available_proxy/$INIT_URL"
+    if [ "$NO_TINY" == "true" ]; then
+        wget -cO /tmp/tailscaled "$available_proxy/$TAILSCALE_URL/download/tailscaled-linux-${arch}-normal"
+        
+    else
+        wget -cO /tmp/tailscaled "$available_proxy/$TAILSCALE_URL/download/tailscaled-linux-${arch}"
+    fi
+        wget -cO /etc/init.d/tailscale "$available_proxy/$INIT_URL"
 }
 
 # 函数：tailscale服务启动器
@@ -622,8 +630,9 @@ show_help() {
     echo "https://github.com/GuNanOvO/openwrt-tailscale"
     echo "  Usage:   "
     echo "      --help: Show this help"
-    echo "      --update: Update Tailscale directly (no confirmation)"
-    echo "      --notiny: Use uncompressed version (TODO)"
+    echo "      --notiny: Use uncompressed version "
+    echo "      --custom-proxy: Custom github proxy"
+
 }
 
 # 读取参数
@@ -633,8 +642,8 @@ for arg in "$@"; do
         show_help
         exit 0
         ;;
-    --update)
-        UPDATE_DIRECTLY="true"
+    --tempinstall)
+        TMP_INSTALL="true"
         ;;
     --custom-proxy)
         while true; do
@@ -655,7 +664,7 @@ for arg in "$@"; do
                 echo "您自定义的代理是: $custom_proxy"
                 read -n 1 -p "您确定使用该代理吗? (y/N): " choise
                 if [ "$choise" == "y" ] || [ "$choise" == "Y" ]; then
-                    use_custom_proxy="true"
+                    USE_CUSTOM_PROXY="true"
                     available_proxy="$custom_proxy"
                     break 2
                 else
@@ -664,22 +673,22 @@ for arg in "$@"; do
             done
         done
         ;;
-    # TODO
     --notiny)
         NO_TINY="true"
         ;;
     *)
         echo "Unknown argument: $arg"
         show_help
-        exit 1
         ;;
     esac
 done
 
 # 主程序
 
-if [ "$UPDATE_DIRECTLY" = "true" ]; then
-    init "false"
+if [ "$TMP_INSTALL" = "true" ]; then
+    set_system_dns
+    get_system_arch 
+    get_tailscale_info
     update
     exit 0
 fi
