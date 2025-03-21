@@ -452,6 +452,7 @@ tailscale_starter() {
 
     sleep 3
 
+    tailscaled &
     tailscale up
     echo "tailscale启动完成"
     echo ""

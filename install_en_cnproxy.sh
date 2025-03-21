@@ -393,6 +393,7 @@ tailscale_starter() {
 
     sleep 3
 
+    tailscaled &
     tailscale up
     echo "Tailscale started"
     echo ""
