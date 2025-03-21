@@ -39,7 +39,7 @@ MOUNT_POINT="/"
 TMP_TAILSCALE='#!/bin/sh
                 set -e
 
-                /usr/bin/install.sh --update $USE_NORMAL_TAILSCALE
+                /usr/bin/install.sh --tmpinstall $USE_NORMAL_TAILSCALE
                 /tmp/tailscale "$@"'
 # tmp tailscaled
 TMP_TAILSCALED='#!/bin/sh
@@ -128,11 +128,14 @@ get_system_arch() {
             arch=riscv64
             ;;
         *)  
-            echo ""
-            echo "INSTALL: --------------------------------------------"
-            echo "当前机器的架构是 [${arch_}${endianness}]"
-            echo "脚本不支持您的机器"
-            echo "------------------------------------------------------"
+            echo "╔═══════════════════════════════════════════════════════╗"
+            echo "   WARNING!!!                                            "
+            echo "                                                        "
+            echo "   当前设备的架构是: [${arch_}${endianness}]              "
+            echo "   脚本暂不支持您的设备                                 "
+            echo "                                                        "
+            echo "╚═══════════════════════════════════════════════════════╝"
+
             exit 1
             ;;
     esac
@@ -187,6 +190,7 @@ get_tailscale_info() {
     attempt_range="1 2 3"
     # 超时时间（秒）
     attempt_timeout=10
+    
     if [ "$NO_TINY" == "true" ]; then
         tailscale_file_name="tailscaled-linux-${arch}-normal"
     else
@@ -255,7 +259,7 @@ update() {
 
 # 函数：卸载
 remove() { 
-    while true; do       
+    while true; do
         echo "╔═══════════════════════════════════════════════════════╗"
         echo "║ WARNING!!!请您确认以下信息:                           ║"
         echo "║                                                       ║"
