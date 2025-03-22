@@ -1,6 +1,6 @@
-
 **简体中文** | [English](README_en.md)  
 
+![Tailscale & OpenWrt](./banner.png)  
 # 📖 适用于 OpenWrt 的 Tailscale 一键安装脚本
 
 ![GitHub release](https://img.shields.io/github/v/release/GuNanOvO/openwrt-tailscale?style=flat-square)

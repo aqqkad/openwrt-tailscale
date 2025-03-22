@@ -1,5 +1,6 @@
 [简体中文](README.md) | **English**  
 
+![Tailscale & OpenWrt](./banner.png)  
 # 📖 One-Click Installation Script for Tailscale on OpenWrt
 
 ![GitHub release](https://img.shields.io/github/v/release/GuNanOvO/openwrt-tailscale?style=flat-square)
