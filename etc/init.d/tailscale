@@ -1,3 +1,5 @@
+#!/bin/sh /etc/rc.common
+
 # Copyright 2020 Google LLC.
 # Copyright (C) 2021 CZ.NIC z.s.p.o. (https://www.nic.cz/)
 # SPDX-License-Identifier: Apache-2.0
