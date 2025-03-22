@@ -93,7 +93,7 @@ wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com
    - 将tailscaled二进制文件置于`/usr/bin`，使用`ln -sv tailscaled tailscale`链接tailscaled到tailscale，仅需大约 **7mb** 即可正常使用tailscale服务。即便所需空间仅 **7mb** ,但我们仍希望您尽量保持存储空间有 **20mb** 时才使用持久化安装。
 
 2. **临时安装**  
-   - 将tailscaled二进制文件至于`/tmp`，同样使用`ln -sv tailscaled tailscale`链接tailscaled到tailscale，由于至于/tmp目录，该安装方式会占用设备内存。每次重启后，会调用到脚本进行重新下载tailscale。
+   - 将tailscaled二进制文件至于`/tmp`，同样使用`ln -sv tailscaled tailscale`链接tailscaled到tailscale，由于是放置于/tmp目录，该安装方式会占用设备内存。每次重启后，会调用到脚本进行重新下载tailscale。
 
 ---
 
