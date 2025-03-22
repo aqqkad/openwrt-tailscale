@@ -35,15 +35,11 @@ https://github.com"
 INIT_URL="/gunanovo/openwrt-tailscale/blob/main/etc/init.d/tailscale"
 # OpenWrt 可写存储分区，通常是 /overlay
 MOUNT_POINT="/"
-USE_NORMAL_TAILSCALE=""
 # tmp tailscale
 TMP_TAILSCALE='#!/bin/sh
                 set -e
 
                 if [ -f "/tmp/tailscale" ]; then
-                    /tmp/tailscale "$@"
-                else
-                    /usr/bin/install.sh --tmpinstall $USE_NORMAL_TAILSCALE
                     /tmp/tailscale "$@"
                 fi'
 # tmp tailscaled
@@ -51,9 +47,21 @@ TMP_TAILSCALED='#!/bin/sh
                 set -e
                 if [ -f "/tmp/tailscaled" ]; then
                     /tmp/tailscaled "$@"
+                else
+                    /usr/bin/install.sh --tmpinstall
+                    /tmp/tailscaled "$@"
+                fi'
+# tmp tailscaled
+TMP_NORMAL_TAILSCALED='#!/bin/sh
+                set -e
+
+                if [ -f "/tmp/tailscaled" ]; then
+                    /tmp/tailscaled "$@"
+                else
+                    /usr/bin/install.sh --tmpinstall --notiny
+                    /tmp/tailscaled "$@"
                 fi'
 
-TMP_INSTALL="false"
 NO_TINY="false"
 # 使用自定义代理
 USE_CUSTOM_PROXY="false"
@@ -389,10 +397,12 @@ temp_install() {
     downloader
     ln -sv /tmp/tailscaled /tmp/tailscale
     if [ "$NO_TINY" == "true" ]; then
-        USE_NORMAL_TAILSCALE="--notiny"
+        echo "$TMP_TAILSCALE" > /usr/bin/tailscale
+        echo "$TMP_NORMAL_TAILSCALED" > /usr/bin/tailscaled
+    else
+        echo "$TMP_TAILSCALE" > /usr/bin/tailscale
+        echo "$TMP_TAILSCALED" > /usr/bin/tailscaled
     fi
-    echo "$TMP_TAILSCALE" > /usr/bin/tailscale
-    echo "$TMP_TAILSCALED" > /usr/bin/tailscaled
     echo "临时安装完成!"
     tailscale_starter
     script_exit
@@ -465,7 +475,7 @@ tailscale_starter() {
         opkg update
         opkg install ca-bundle
     fi
-    
+
     /etc/init.d/tailscale start
 
     sleep 3
