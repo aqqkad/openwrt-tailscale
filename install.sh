@@ -48,7 +48,7 @@ TMP_TAILSCALED='#!/bin/sh
                 if [ -f "/tmp/tailscaled" ]; then
                     /tmp/tailscaled "$@"
                 else
-                    /usr/bin/install.sh --tmpinstall
+                    /usr/bin/install.sh --tempinstall
                     /tmp/tailscaled "$@"
                 fi'
 # tmp tailscaled
@@ -58,7 +58,7 @@ TMP_NORMAL_TAILSCALED='#!/bin/sh
                 if [ -f "/tmp/tailscaled" ]; then
                     /tmp/tailscaled "$@"
                 else
-                    /usr/bin/install.sh --tmpinstall --notiny
+                    /usr/bin/install.sh --tempinstall --notiny
                     /tmp/tailscaled "$@"
                 fi'
 
