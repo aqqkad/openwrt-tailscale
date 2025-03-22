@@ -4,7 +4,9 @@
 # 📖 适用于 OpenWrt 的 Tailscale 一键安装脚本
 
 ![GitHub release](https://img.shields.io/github/v/release/GuNanOvO/openwrt-tailscale?style=flat-square)
+![GitHub Repo Views](https://img.shields.io/github/search/GuNanOvO/openwrt-tailscale/git?label=Views&query=is%3Apublic&color=blue)
 ![Downloads](https://img.shields.io/github/downloads/GuNanOvO/openwrt-tailscale/total?style=flat-square)
+![GitHub Stars](https://img.shields.io/github/stars/GuNanOvO/openwrt-tailscale?label=Stars&color=yellow)
 
 > ✨ 一个专为 OpenWrt 小存储空间设备设计的 Tailscale 安装工具  
 > 🚀 支持持久化安装、临时安装  

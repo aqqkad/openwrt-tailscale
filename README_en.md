@@ -4,7 +4,10 @@
 # 📖 One-Click Installation Script for Tailscale on OpenWrt
 
 ![GitHub release](https://img.shields.io/github/v/release/GuNanOvO/openwrt-tailscale?style=flat-square)
+![GitHub Repo Views](https://img.shields.io/github/search/GuNanOvO/openwrt-tailscale/git?label=Views&query=is%3Apublic&color=blue)
 ![Downloads](https://img.shields.io/github/downloads/GuNanOvO/openwrt-tailscale/total?style=flat-square)
+![GitHub Stars](https://img.shields.io/github/stars/GuNanOvO/openwrt-tailscale?label=Stars&color=yellow)
+
 
 > ✨ A Tailscale installation tool designed for OpenWrt devices with limited storage.  
 > 🚀 Supports both persistent and temporary installation.  
