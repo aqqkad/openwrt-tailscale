@@ -457,6 +457,15 @@ tailscale_starter() {
         opkg update
         opkg install kmod-tun
     fi
+    if [ -z $(opkg status | grep "libustream-openssl") ]; then
+        opkg update
+        opkg install libustream-openssl
+    fi
+    if [ -z $(opkg status | grep "ca-bundle") ]; then
+        opkg update
+        opkg install ca-bundle
+    fi
+    
     /etc/init.d/tailscale start
 
     sleep 3
