@@ -28,19 +28,26 @@ https://www.ghproxy.cn/https://github.com
 https://github.com"
 INIT_URL="/gunanovo/openwrt-tailscale/blob/main/etc/init.d/tailscale"
 MOUNT_POINT="/"
+USE_NORMAL_TAILSCALE=""
+# tmp tailscale
 TMP_TAILSCALE='#!/bin/sh
                 set -e
 
-                /usr/bin/install.sh --tmpinstall $USE_NORMAL_TAILSCALE
-                /tmp/tailscale "$@"'
+                if [ -f "/tmp/tailscale" ]; then
+                    /tmp/tailscale "$@"
+                else
+                    /usr/bin/install.sh --tmpinstall $USE_NORMAL_TAILSCALE
+                    /tmp/tailscale "$@"
+                fi'
+# tmp tailscaled
 TMP_TAILSCALED='#!/bin/sh
                 set -e
-
-                /tmp/tailscaled "$@"'
+                if [ -f "/tmp/tailscaled" ]; then
+                    /tmp/tailscaled "$@"
+                fi'
 
 TMP_INSTALL="false"
 NO_TINY="false"
-USE_NORMAL_TAILSCALE=""
 USE_CUSTOM_PROXY="false"
 
 tailscale_latest_version=""
@@ -263,7 +270,7 @@ persistent_install() {
         echo "╔═══════════════════════════════════════════════════════╗"
         echo "║ WARNING!!! Please confirm:                            ║"
         echo "║                                                       ║"
-        echo "║ Ensure free space ≥ $file_size_mb MB, recommended ≥ $(expr $file_size_mb \* 3)M.         ║"
+        echo "║ Ensure free space ≥ $file_size_mb MB, recommended ≥ $(expr $file_size_mb \* 3)M.          ║"
         echo "║ Report issues at:                                     ║"
         echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
         echo "╚═══════════════════════════════════════════════════════╝"
@@ -289,7 +296,7 @@ temp_to_persistent() {
         echo "╔═══════════════════════════════════════════════════════╗"
         echo "║ WARNING!!! Please confirm:                            ║"
         echo "║                                                       ║"
-        echo "║ Ensure free space ≥ $file_size_mb MB, recommended ≥ $(expr $file_size_mb \* 3)M.         ║"
+        echo "║ Ensure free space ≥ $file_size_mb MB, recommended ≥ $(expr $file_size_mb \* 3)M.          ║"
         echo "║ Report issues at:                                     ║"
         echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
         echo "╚═══════════════════════════════════════════════════════╝"
@@ -385,6 +392,10 @@ tailscale_starter() {
     chmod +x /etc/init.d/tailscale
     chmod +x /usr/bin/tailscale
     chmod +x /usr/bin/tailscaled
+    if [ -f "/tmp/tailscaled" ]; then
+        chmod +x /tmp/tailscale
+        chmod +x /tmp/tailscaled
+    fi
 
     if [ -z $(opkg status | grep "kmod-tun") ]; then
         opkg update
@@ -403,15 +414,15 @@ tailscale_starter() {
     echo "Tailscale service started"
     echo ""
     echo "╔═══════════════════════════════════════════════════════╗"
-    echo "║ Tailscale installation & service started successfully! ║"
-    echo "║                                                        ║"
-    echo "║ You can now start using it as you wish!                ║"
-    echo "║ To start directly: tailscale up                        ║"
-    echo "║ If you encounter any issues after installation,        ║"
-    echo "║ please submit feedback at:                             ║"
-    echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues   ║"
-    echo "║ Thank you for using! /<3                               ║"
-    echo "║                                                        ║"
+    echo "║ Tailscale installation & service started successfully!║"
+    echo "║                                                       ║"
+    echo "║ You can now start using it as you wish!               ║"
+    echo "║ To start directly: tailscale up                       ║"
+    echo "║ If you encounter any issues after installation,       ║"
+    echo "║ please submit feedback at:                            ║"
+    echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
+    echo "║ Thank you for using! /<3                              ║"
+    echo "║                                                       ║"
     echo "╚═══════════════════════════════════════════════════════╝"
     echo ""
 }

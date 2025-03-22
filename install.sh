@@ -35,21 +35,26 @@ https://github.com"
 INIT_URL="/gunanovo/openwrt-tailscale/blob/main/etc/init.d/tailscale"
 # OpenWrt 可写存储分区，通常是 /overlay
 MOUNT_POINT="/"
+USE_NORMAL_TAILSCALE=""
 # tmp tailscale
 TMP_TAILSCALE='#!/bin/sh
                 set -e
 
-                /usr/bin/install.sh --tmpinstall $USE_NORMAL_TAILSCALE
-                /tmp/tailscale "$@"'
+                if [ -f "/tmp/tailscale" ]; then
+                    /tmp/tailscale "$@"
+                else
+                    /usr/bin/install.sh --tmpinstall $USE_NORMAL_TAILSCALE
+                    /tmp/tailscale "$@"
+                fi'
 # tmp tailscaled
 TMP_TAILSCALED='#!/bin/sh
                 set -e
-
-                /tmp/tailscaled "$@"'
+                if [ -f "/tmp/tailscaled" ]; then
+                    /tmp/tailscaled "$@"
+                fi'
 
 TMP_INSTALL="false"
 NO_TINY="false"
-USE_NORMAL_TAILSCALE=""
 # 使用自定义代理
 USE_CUSTOM_PROXY="false"
 
@@ -443,6 +448,10 @@ tailscale_starter() {
     chmod +x /etc/init.d/tailscale
     chmod +x /usr/bin/tailscale
     chmod +x /usr/bin/tailscaled
+    if [ -f "/tmp/tailscaled" ]; then
+        chmod +x /tmp/tailscale
+        chmod +x /tmp/tailscaled
+    fi
 
     if [ -z $(opkg status | grep "kmod-tun") ]; then
         opkg update
