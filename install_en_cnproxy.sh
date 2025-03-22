@@ -420,6 +420,7 @@ tailscale_starter() {
         opkg install ca-bundle
     fi
     
+    /etc/init.d/tailscale enable
     /etc/init.d/tailscale start
 
     sleep 3
