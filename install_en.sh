@@ -206,11 +206,13 @@ remove() {
 
             ip link delete tailscale0
             break
+            script_exit
         else
             echo "Uninstall canceled"
             break
         fi
     done
+
 }
 
 # Function: Persistent Install
@@ -338,7 +340,7 @@ downloader() {
 # Function: Start Tailscale
 tailscale_starter() {
     echo ""
-    echo "Starting Tailscale..."
+    echo "Starting Tailscale service..."
     chmod +x /etc/init.d/tailscale
     chmod +x /usr/bin/tailscale
     chmod +x /usr/bin/tailscaled
@@ -353,8 +355,23 @@ tailscale_starter() {
     sleep 3
 
     tailscaled &>/dev/null &
-    tailscale up
-    echo "Tailscale started"
+    tailscaled &>/dev/null &
+    if [ "$TMP_INSTALL" == "true" ]; then
+        tailscale up
+    fi
+    echo "Tailscale service started"
+    echo ""
+    echo "╔═══════════════════════════════════════════════════════╗"
+    echo "║ Tailscale installation & service started successfully! ║"
+    echo "║                                                        ║"
+    echo "║ You can now start using it as you wish!                ║"
+    echo "║ To start directly: tailscale up                        ║"
+    echo "║ If you encounter any issues after installation,        ║"
+    echo "║ please submit feedback at:                             ║"
+    echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues   ║"
+    echo "║ Thank you for using! /<3                               ║"
+    echo "║                                                        ║"
+    echo "╚═══════════════════════════════════════════════════════╝"
     echo ""
 }
 

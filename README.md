@@ -23,6 +23,7 @@
 | `arm64`         | 已测试✔️     | R2S       | ImmortalWrt 23.05.4 |
 | `mips/mipsel`   | 未测试❌     |           |                     |
 | `riscv64`       | 未测试❌     |           |                     |
+| `geode`         | 未测试❌     |           |                     |
 
 
 ---

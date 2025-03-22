@@ -287,14 +287,14 @@ remove() {
             done
 
             ip link delete tailscale0
-
             break
-
+            script_exit
         else
             echo "取消卸载"
             break
         fi
     done
+
 }
 
 # 函数：持久安装
@@ -439,7 +439,7 @@ downloader() {
 # 函数：tailscale服务启动器
 tailscale_starter() {
     echo ""
-    echo "正在启动tailscale..."
+    echo "正在启动tailscale服务..."
     chmod +x /etc/init.d/tailscale
     chmod +x /usr/bin/tailscale
     chmod +x /usr/bin/tailscaled
@@ -453,8 +453,21 @@ tailscale_starter() {
     sleep 3
 
     tailscaled &>/dev/null &
-    tailscale up
-    echo "tailscale启动完成"
+    if [ "$TMP_INSTALL" == "true" ]; then
+        tailscale up
+    fi
+    echo "tailscale服务启动完成"
+    echo ""
+    echo "╔═══════════════════════════════════════════════════════╗"
+    echo "║ Tailscale安装&服务启动完成!!!                         ║"
+    echo "║                                                       ║"
+    echo "║ 现在您可以按照您希望的方式开始使用!                   ║"
+    echo "║ 直接启动: tailscale up                                ║"
+    echo "║ 安装后有任何无法使用的问题, 可以于:                   ║"
+    echo "║ https://github.com/GuNanOvO/openwrt-tailscale/issues  ║"
+    echo "║ 提出反馈. 谢谢您的使用! /<3                           ║"
+    echo "║                                                       ║"
+    echo "╚═══════════════════════════════════════════════════════╝"
     echo ""
 }
 
