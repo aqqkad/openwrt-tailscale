@@ -290,7 +290,7 @@ persistent_install() {
     echo "Persistent installing..."
     fi 
     downloader
-    mv /tmp/tailscaled /usr/bin
+    mv -f /tmp/tailscaled /usr/bin
     ln -sv /usr/bin/tailscaled /usr/bin/tailscale
     echo "Persistent installation complete!"
     tailscale_starter

@@ -332,7 +332,7 @@ persistent_install() {
     echo "正在持久安装..."
     fi 
     downloader
-    mv /tmp/tailscaled /usr/bin
+    mv -f /tmp/tailscaled /usr/bin
     ln -sv /usr/bin/tailscaled /usr/bin/tailscale
     echo "持久安装完成!"
     tailscale_starter
