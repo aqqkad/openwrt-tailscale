@@ -4,7 +4,7 @@
 # 📖 One-Click Installation Script for Tailscale on OpenWrt
 
 ![GitHub release](https://img.shields.io/github/v/release/GuNanOvO/openwrt-tailscale?style=flat-square)
-![GitHub Repo Views](https://img.shields.io/github/search/GuNanOvO/openwrt-tailscale/git?label=Views&query=is%3Apublic&color=blue)
+![Views](https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fgithub.com%2FGuNanOvO%2Fopenwrt-tailscale&label=Views&countColor=%23b7d079&style=flat)
 ![Downloads](https://img.shields.io/github/downloads/GuNanOvO/openwrt-tailscale/total?style=flat-square)
 ![GitHub Stars](https://img.shields.io/github/stars/GuNanOvO/openwrt-tailscale?label=Stars&color=yellow)
 
@@ -89,8 +89,8 @@ Utilizes the `--extra-small` compilation flag from Tailscale's [official documen
 
 | Project | Contribution |
 |---------|-------------|
-| [📦 tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt) | Provided key implementation ideas for this script. |
-| [📦 glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater) | Provided key implementation ideas for this script. |
+| [📦 tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt) | Provided key implementation ideas about temporary installation for this script. |
+| [📦 glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater) | Provided key implementation ideas about persistent installationfor this script. |
 
 ---
 
