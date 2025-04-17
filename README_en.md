@@ -59,13 +59,13 @@ wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-t
 ## ⚠️ Notes
 
 1. **Temporary Installation Warning**  
-   🔥 The `/tmp` directory is cleared upon reboot! This method is only recommended for devices that cannot persistently install due to storage constraints. Since temporary installation heavily depends on network availability, do not solely rely on Tailscale to avoid interruptions.🔥‘ /tmp ’目录在重启时被清除！此方法仅建议用于由于存储限制而无法持久安装的设备。由于临时安装在很大程度上取决于网络的可用性，因此不要仅仅依靠Tailscale来避免中断。
+   🔥 The `/tmp` directory is cleared upon reboot! This method is only recommended for devices that cannot persistently install due to storage constraints. Since temporary installation heavily depends on network availability, do not solely rely on Tailscale to avoid interruptions.
 
-2. **Network Requirements**  2. * * * *网络需求
-   🌐 Must have access to GitHub .🌐必须访问GitHub。
+2. **Network Requirements**  
+   🌐 Must have access to GitHub  
 
 3. **Compatibility**  
-   ⚠️ Most devices or architectures have not been tested. If you encounter issues, please submit an [issue](https://github.com/GuNanOvO/openwrt-tailscale/issues), and I will work on fixing them as soon as possible.⚠️大多数设备或架构尚未经过测试。如果您遇到问题，请提交[问题](https://github.com/GuNanOvO/openwrt-tailscale/issues)，我会尽快修复。
+   ⚠️ Most devices or architectures have not been tested. If you encounter issues, please submit an [issue](https://github.com/GuNanOvO/openwrt-tailscale/issues), and I will work on fixing them as soon as possible.  
 
 ---
 
@@ -81,11 +81,11 @@ Utilizes the `--extra-small` compilation flag from Tailscale's [official documen
    - Places the `tailscaled` binary in `/usr/bin`, creating a symbolic link using `ln -sv tailscaled tailscale`. Only **7MB** of storage is required to run Tailscale. Although the minimum space requirement is **7MB**, we recommend having at least **20MB** for a stable persistent installation.
 
 2. **Temporary Installation**  
-   - Places the `tailscaled` binary in `/tmp`, creating a symbolic link as above. Since it is stored in the `/tmp` directory, this method **uses device RAM**. Upon reboot, the script will automatically re-download Tailscale.-将‘ tailscaled ’二进制文件放在‘ /tmp ’中，创建一个符号链接，如上所述。由于它存储在“/tmp”目录中，因此该方法**使用设备RAM**。重新启动后，脚本将自动重新下载Tailscale。
+   - Places the `tailscaled` binary in `/tmp`, creating a symbolic link as above. Since it is stored in the `/tmp` directory, this method **uses device RAM**. Upon reboot, the script will automatically re-download Tailscale.  
 
 ---
 
-## 🙏 Special Thanks   ##🙏特别感谢
+## 🙏 Special Thanks
 
 | Project | Contribution |
 |---------|-------------|
@@ -94,15 +94,15 @@ Utilizes the `--extra-small` compilation flag from Tailscale's [official documen
 
 ---
 
-## 🐛 Issue Reporting   ##🐛问题报告
+## 🐛 Issue Reporting
 
-If you encounter any issues, please submit them in [GitHub Issues](https://github.com/GuNanOvO/openwrt-tailscale/issues) along with:如果您遇到任何问题，请将它们提交到[GitHub问题]（https://github.com/GuNanOvO/openwrt-tailscale/issues）以及：
-1. Device architecture (`uname -m`)1. 设备架构（' uname -m '）
-2. Installation method (Persistent/Temporary)2. 安装方式（持久/临时）
-3. Relevant log snippets   3. 相关日志片段
+If you encounter any issues, please submit them in [GitHub Issues](https://github.com/GuNanOvO/openwrt-tailscale/issues) along with:  
+1. Device architecture (`uname -m`)  
+2. Installation method (Persistent/Temporary)  
+3. Relevant log snippets  
 
 ---
 
-> 💖 If this project helps you, feel free to star it!  >💖如果这个项目对你有帮助，请给它点上星星！
-> ⭐ [Go to GitHub Repository](https://github.com/GuNanOvO/openwrt-tailscale)>⭐[转到GitHub Repository]（https://github.com/GuNanOvO/openwrt-tailscale）
+> 💖 If this project helps you, feel free to star it!  
+> ⭐ [Go to GitHub Repository](https://github.com/GuNanOvO/openwrt-tailscale)
 
