@@ -18,7 +18,7 @@ script_info() {
 
 # Basic Configuration
 TAILSCALE_URL="https://github.com/gunanovo/openwrt-tailscale/releases/latest"
-INIT_URL="https://github.com//gunanovo/openwrt-tailscale/blob/main/etc/init.d/tailscale"
+INIT_URL="https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/refs/heads/main/etc/init.d/tailscale"
 MOUNT_POINT="/"
 # tmp tailscale
 TMP_TAILSCALE='#!/bin/sh
