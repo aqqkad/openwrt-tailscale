@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # Script Information
-SCRIPT_VERSION="v1.04"
-SCRIPT_DATE="2025/03/22"
+SCRIPT_VERSION="v1.05"
+SCRIPT_DATE="2025/05/24"
 script_info() {
     echo "#╔╦╗┌─┐ ┬ ┬  ┌─┐┌─┐┌─┐┬  ┌─┐  ┌─┐┌┐┌  ╔═╗┌─┐┌─┐┌┐┌ ╦ ╦ ┬─┐┌┬┐  ╦ ┌┐┌┌─┐┌┬┐┌─┐┬  ┬  ┌─┐┬─┐#"
     echo "# ║ ├─┤ │ │  └─┐│  ├─┤│  ├┤   │ ││││  ║ ║├─┘├┤ │││ ║║║ ├┬┘ │   ║ │││└─┐ │ ├─┤│  │  ├┤ ├┬┘#"
@@ -20,6 +20,7 @@ script_info() {
 TAILSCALE_URL="https://github.com/gunanovo/openwrt-tailscale/releases/latest"
 INIT_URL="https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/refs/heads/main/etc/init.d/tailscale"
 MOUNT_POINT="/"
+PACKAGES_TO_CHECK="libustream-openssl kmod-tun ca-bundle iptables ip6tables kmod-ipt-conntrack kmod-nft-nat"
 # tmp tailscale
 TMP_TAILSCALE='#!/bin/sh
                 set -e
@@ -70,16 +71,7 @@ get_system_arch() {
     endianness=""
 
     case "$arch_" in
-        i386)
-            arch=386
-            ;;
-        i486)
-            arch=386
-            ;;
-        i586)
-            arch=386
-            ;;
-        i686)
+        i386 | i486 | i586 | i686)
             arch=386
             ;;
         x86_64)
@@ -95,8 +87,8 @@ get_system_arch() {
             arch=geode
             ;;
         mips)
-            arch=mips
-            endianness=$(echo -n I | hexdump -o | awk '{ print (substr($2,6,1)=="1") ? "le" : "be"; exit }')
+            endianness=$(echo -n I | hexdump -o | awk '{ print (substr($2,6,1)=="1") ? "le" : ""; exit }')
+            arch=mips${endianness}
             ;;
         riscv64)
             arch=riscv64
@@ -366,18 +358,8 @@ tailscale_starter() {
         chmod +x /tmp/tailscaled
     fi
 
-    if [ -z $(opkg status | grep "kmod-tun") ]; then
-        opkg update
-        opkg install kmod-tun
-    fi
-    if [ -z $(opkg status | grep "libustream-openssl") ]; then
-        opkg update
-        opkg install libustream-openssl
-    fi
-    if [ -z $(opkg status | grep "ca-bundle") ]; then
-        opkg update
-        opkg install ca-bundle
-    fi
+    opkg update
+    opkg install $PACKAGES_TO_CHECK
     
     /etc/init.d/tailscale enable
     /etc/init.d/tailscale start
@@ -463,7 +445,7 @@ script_exit() {
 # Function: Show info
 show_info() {
     echo "╔═════════════════════ Basic Information ══════════════════╗"
-    echo "   Device Architecture: [${arch}${endianness}]"
+    echo "   Device Architecture: [${arch}]"
     if [ "$is_tailscale_installed" = "true" ]; then
         echo "   Tailscale Status: Installed"
         if [ "$tailscale_install_status" = "temp" ]; then
