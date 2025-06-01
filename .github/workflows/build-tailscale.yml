@@ -11,6 +11,7 @@ env:
   REPO: "tailscale/tailscale"
   REPO_SMALL: "GuNanOvO/openwrt-tailscale"
   ARTIFACT_DIR: "artifacts"
+  BUILD_DATE: ""
 jobs:
   version-check:
     name: Check Version Differences
@@ -19,18 +20,26 @@ jobs:
       should_build: ${{ steps.compare.outputs.should_build }}
       upstream_tag: ${{ steps.get_upstream.outputs.tag }}
     steps:
-      - name: Get latest tag from tailscale
+      - name: Get latest stable tag from tailscale
         id: get_upstream
         uses: actions/github-script@v6
         with:
           script: |
-            const tags = await github.rest.repos.listTags({
+            const semver = require('semver');
+
+            const { data: tags } = await github.rest.repos.listTags({
               owner: 'tailscale',
               repo: 'tailscale',
-              per_page: 1
+              per_page: 10
             });
-            const latestTag = tags.data[0]?.name || '';
-            core.setOutput('tag', latestTag);
+
+            const stableTags = tags
+              .map(tag => tag.name)
+              .filter(tag => semver.valid(tag) && !semver.prerelease(tag));
+
+            const latest = stableTags.sort(semver.rcompare)[0] || '';
+            core.setOutput('tag', latest);
+
 
       - name: Get latest release tag from openwrt-tailscale
         id: get_small
@@ -172,6 +181,7 @@ jobs:
 
       - name: Generate release files
         run: |
+          echo "BUILD_DATE=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
           # Create checksums
           cd compressed
           sha256sum * > checksums.txt
@@ -179,7 +189,7 @@ jobs:
           # Create info file
           {
             echo "Version: ${{ env.RELEASE_TAG }}"
-            echo "Build date: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            echo "Build date: ${{ env.BUILD_DATE }}"
             echo ""
             echo "File sizes:"
             for file in ${{ env.FILE_NAME }}-*; do
@@ -188,6 +198,7 @@ jobs:
             done
           } > build-info.txt
           cd ..
+          
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -196,39 +207,46 @@ jobs:
           name: "Smaller ${{ env.SOFTWARE_NAME }} ${{ env.RELEASE_TAG }}"
           body: |
             ## 🚀 Smaller Tailscale / 更小的Tailscale
-            **Version | 版本:** ${{ env.RELEASE_TAG }}  
-            **Build date | 构建日期:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')  
-            **Changelog | 更新日志:** https://github.com/${{ env.REPO }}/releases/tag/${{ env.RELEASE_TAG }}
+            |     |                             |
+            |-----|-----------------------------|
+            |**Version <br> 版本** | ${{ env.RELEASE_TAG }} |
+            |**Build date(UTC) <br> 构建日期(UTC)** | ${{ env.BUILD_DATE }} |
+            |**Changelog <br> 更新日志** | https://github.com/${{ env.REPO }}/releases/tag/${{ env.RELEASE_TAG }} |
 
-            ### Build Features
+            ---
+
+            ### 🛠️ Build Features
             - Combined `tailscale` & `tailscaled` into single binary  
             - Combined binary with `--extra-small` flag  
             - UPX compressed (except mips64 variants)  
 
-            ### Requirements
+            ### ⚠️ Requirements
             - **Storage**: less than 10MB (UPX compressed)  
             - **RAM**: about 60MB (during operation)  
             - **Warning**: May not work on devices with <256MB RAM
 
-            ### About -normal version
+            ### 📦 About -normal version
             May provide better security:
             - `filename-normal`: Original binary
             - `filename`: UPX compressed
 
-            ### 构建特性
+            ---
+
+            ### 🛠️ 构建特性
             - 将 `tailscale` 与 `tailscaled` 合并为单一二进制文件  
             - 使用 `--extra-small` 极简编译选项  
             - UPX 压缩 (mips64架构除外)  
 
-            ### 需求说明
+            ### ⚠️ 需求说明
             - **存储空间**: 小于 10MB (UPX 压缩后)  
             - **运行内存**: 大约 60MB (运行时)  
             - **警告**: 内存小于 256MB 的设备可能无法运行  
 
-            ### 未压缩版本说明
+            ### 📦 未压缩版本说明
             可能提供更好的安全性:
             - `filename-normal`: 原始二进制
             - `filename`: UPX压缩版本
+            ---
           files: |
             compressed/*
         env:
