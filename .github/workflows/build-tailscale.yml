@@ -211,12 +211,9 @@ jobs:
           name: "Smaller ${{ env.SOFTWARE_NAME }} ${{ env.RELEASE_TAG }}"
           body: |
             ## 🚀 Smaller Tailscale / 更小的Tailscale
-            |     |                             |
-            |-----|-----------------------------|
-            |**Version <br> 版本** | ${{ env.RELEASE_TAG }} |
-            |**Build date(UTC) <br> 构建日期(UTC)** | ${{ env.BUILD_DATE }} |
-            |**Changelog <br> 更新日志** | https://github.com/${{ env.REPO }}/releases/tag/${{ env.RELEASE_TAG }} |
-
+            **Version  版本** :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${{ env.RELEASE_TAG }}   
+            **Build date  构建日期** : &nbsp;&nbsp;&nbsp;${{ env.BUILD_DATE }}   
+            **Changelog  更新日志** : &nbsp;&nbsp;&nbsp;https://github.com/${{ env.REPO }}/releases/tag/${{ env.RELEASE_TAG }}   
             ---
 
             ### 🛠️ Build Features
