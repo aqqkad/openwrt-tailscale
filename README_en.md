@@ -8,7 +8,8 @@
 ![Downloads](https://img.shields.io/github/downloads/GuNanOvO/openwrt-tailscale/total?style=flat)
 ![GitHub Stars](https://img.shields.io/github/stars/GuNanOvO/openwrt-tailscale?label=Stars&color=yellow)
 
-
+Bring the latest Tailscale to small-storage OpenWrt device  
+space-saving & easy install & easy update  
 > ✨ A Tailscale installation tool designed for OpenWrt devices with limited storage.  
 > 🚀 Supports both persistent and temporary installation.  
 > 🔥 Reduces Tailscale size by **70%**! (Using compilation optimization + UPX compression technology)  
@@ -24,13 +25,18 @@
 | `x86_64`       | Tested ✔️     | kvm VM      | ImmortalWrt 24.10.0     |
 | `arm`          | Tested ✔️     | CMCC-XR30   | OpenWrt 23.05.0         |
 | `arm64`        | Tested ✔️     | R2S         | ImmortalWrt 23.05.4     |
-| `mips/mipsel`  | Not Tested ❌ |             |                         |
+| `mipsle`       | Tested ✔️     | qemu        | ImmortalWrt 24.10.0     |
 | `riscv64`      | Not Tested ❌ |             |                         |
 | `geode`        | Not Tested ❌ |             |                         |
 
 ---
 
 ## 📥 Installation Guide
+
+### ⚠️ Requirements
+- **Storage**: less than 10MB (UPX compressed)  
+- **RAM**: about 60MB (during operation)  
+- **Warning**: May not work on devices with <256MB RAM
 
 ### 🔌 Recommended Method (SSH Connection)
 ```bash
@@ -71,8 +77,7 @@ wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-t
 
 ## ⚙️ Implementation Details
 
-### 🛠️ Compilation Optimization
-
+**🛠️ Compilation Optimization**:
 Utilizes the `--extra-small` compilation flag from Tailscale's [official documentation](https://tailscale.com/kb/1207/small-tailscale) along with [UPX](https://upx.github.io/) binary compression technology to shrink Tailscale to **20%** of its original size, making it feasible to use on OpenWrt devices with limited storage. 🎉
 
 ### 📦 Core Script Logic
@@ -87,22 +92,19 @@ Utilizes the `--extra-small` compilation flag from Tailscale's [official documen
 
 ## 🙏 Special Thanks
 
-| Project | Contribution |
-|---------|-------------|
-| [📦 tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt) | Provided key implementation ideas about temporary installation for this script. |
-| [📦 glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater) | Provided key implementation ideas about persistent installationfor and compression methon this script. |
+**[📦 tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt)**: Provided key implementation ideas about temporary installation for this script.  
+**[📦 glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater)**: Provided key implementation ideas about persistent installationfor and compression methon this script.  
 
 ---
 
 ## 🐛 Issue Reporting
 
-If you encounter any issues, please submit them in [GitHub Issues](https://github.com/GuNanOvO/openwrt-tailscale/issues) along with:  
+If you encounter any issues, please submit them in [Issues](https://github.com/GuNanOvO/openwrt-tailscale/issues) along with:  
 1. Device architecture (`uname -m`)  
 2. Installation method (Persistent/Temporary)  
 3. Relevant log snippets  
 
 ---
 
-> 💖 If this project helps you, feel free to star it!  
-> ⭐ [Go to GitHub Repository](https://github.com/GuNanOvO/openwrt-tailscale)
+> 💖 If this project helps you, feel free to star⭐ it!  
 

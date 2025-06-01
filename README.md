@@ -8,6 +8,8 @@
 ![Downloads](https://img.shields.io/github/downloads/GuNanOvO/openwrt-tailscale/total?style=flat)
 ![GitHub Stars](https://img.shields.io/github/stars/GuNanOvO/openwrt-tailscale?label=Stars&color=yellow)
 
+Bring the latest Tailscale to small-storage OpenWrt device  
+space-saving & easy install & easy update  
 > ✨ 一个专为 OpenWrt 小存储空间设备设计的 Tailscale 安装工具  
 > 🚀 支持持久化安装、临时安装  
 > 🔥 缩小tailscale体积 **70%**！（使用编译优化+UPX压缩技术）  
@@ -17,20 +19,24 @@
 
 ## 🖥️ 支持架构列表
 
-| 架构类型        | 测试情况      | 测试设备 | 测试系统环境 |
-|-----------------|---------------|----------|--------------|
-| `i386`          | 已测试✔️     | kvm虚拟机 | ImmortalWrt 24.10.0 |
-| `x86_64`        | 已测试✔️     | kvm虚拟机 | ImmortalWrt 24.10.0 |
-| `arm`           | 已测试✔️     | CMCC-XR30 | OpenWrt 23.05.0     |
-| `arm64`         | 已测试✔️     | R2S       | ImmortalWrt 23.05.4 |
-| `mips/mipsel`   | 未测试❌     |           |                     |
-| `riscv64`       | 未测试❌     |           |                     |
-| `geode`         | 未测试❌     |           |                     |
-
+| 架构类型        | 测试情况      | 测试设备  | 测试系统环境 |
+|-----------------|---------------|-----------|--------------|
+| `i386`          | 已测试✔️     | kvm虚拟机  | ImmortalWrt 24.10.0 |
+| `x86_64`        | 已测试✔️     | kvm虚拟机  | ImmortalWrt 24.10.0 |
+| `arm`           | 已测试✔️     | CMCC-XR30  | OpenWrt 23.05.0     |
+| `arm64`         | 已测试✔️     | R2S        | ImmortalWrt 23.05.4 |
+| `mipsle`        | 已测试✔️     | qemu虚拟机 | ImmortalWrt 24.10.0 |
+| `riscv64`       | 未测试❌     |            |                     |
+| `geode`         | 未测试❌     |            |                     |
 
 ---
 
 ## 📥 使用方法
+
+### ⚠️ 需求说明
+- **存储空间**: 小于 10MB (UPX 压缩后)  
+- **运行内存**: 大约 60MB (运行时)  
+- **警告**: 内存小于 256MB 的设备可能无法运行 
 
 ### 🔌 推荐方式（SSH连接）
 
@@ -84,9 +90,7 @@ wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com
 
 ## ⚙️ 实现原理
 
-### 🛠️ 编译优化
-
-使用了tailscale[官方文档](https://tailscale.com/kb/1207/small-tailscale)指出的 `--extra-small` 编译选项，加之[UPX](https://upx.github.io/)的二进制文件压缩技术，将tailscale压缩至原来的20%，使得在小存储空间的openwrt设备上使用tailscale变得可能🎉
+**🛠️ 编译优化**: 使用了Tailscale[官方文档](https://tailscale.com/kb/1207/small-tailscale)指出的 `--extra-small` 编译选项，加之[UPX](https://upx.github.io/)的二进制文件压缩技术，将tailscale压缩至原来的20%，使得在小存储空间的openwrt设备上使用tailscale变得可能🎉
 
 ### 📦 脚本核心逻辑
 1. **持久安装**  
@@ -98,22 +102,18 @@ wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com
 ---
 
 ## 🙏 特别致谢
-
-| 项目 | 贡献 |
-|------|------|
-| [📦 tailscale-openwrt 项目](https://github.com/CH3NGYZ/tailscale-openwrt) | 为本脚本提供了临时安装思路 |
-| [📦 glinet-tailscale-updater 项目](https://github.com/Admonstrator/glinet-tailscale-updater) | 为本脚本提供了永久安装与压缩技术思路 |
+**[📦 tailscale-openwrt 项目](https://github.com/CH3NGYZ/tailscale-openwrt)**: 为本脚本提供了临时安装思路  
+**[📦 glinet-tailscale-updater 项目](https://github.com/Admonstrator/glinet-tailscale-updater)**: 为本脚本提供了永久安装与压缩技术思路 
 
 ---
 
 ## 🐛 问题反馈
 
-遇到问题请至 [GitHub Issues](https://github.com/GuNanOvO/openwrt-tailscale/issues) 提交，请附上：
+遇到问题请至 [Issues](https://github.com/GuNanOvO/openwrt-tailscale/issues) 提交，请附上：
 1. 设备架构信息（`uname -m`）
 2. 安装模式（持久/临时）
 3. 相关日志片段
 
 ---
 
-> 💖 如果本项目对您有帮助，欢迎点亮小星星！  
-> ⭐ [前往 GitHub 仓库](https://github.com/GuNanOvO/openwrt-tailscale)
+> 💖 如果本项目对您有帮助，欢迎点亮小星星⭐！  

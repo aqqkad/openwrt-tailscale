@@ -1,221 +1,242 @@
-name: Build smaller Tailscale binary
+name: Smaller Tailscale Build Pipeline
+
 on:
   schedule:
     - cron: '30 0/12 * * *'
   workflow_dispatch:
+
 env:
   SOFTWARE_NAME: "Tailscale"
   FILE_NAME: "tailscaled"
   REPO: "tailscale/tailscale"
   REPO_SMALL: "GuNanOvO/openwrt-tailscale"
-  GIT_AUTHOR_NAME: "GuNanOvO"
+  ARTIFACT_DIR: "artifacts"
+
 jobs:
-  check-versions:
+  version-check:
+    name: Check Version Differences
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     outputs:
-      TAG: ${{ steps.tag.outputs.TAG }}
-      TAG_SMALL: ${{ steps.tag_small.outputs.TAG_SMALL }}
+      should_build: ${{ steps.compare.outputs.should_build }}
+      upstream_tag: ${{ steps.get_upstream.outputs.tag }}
     steps:
-      - name: Get latest ${{ env.SOFTWARE_NAME }} tag
-        id: tag
+      - name: Get upstream version
+        id: get_upstream
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data } = await github.rest.repos.getLatestRelease({
+              owner: 'tailscale',
+              repo: 'tailscale'
+            })
+            return { tag: data.tag_name }
+      
+      - name: Get small repo version
+        id: get_small
+        uses: actions/github-script@v6
+        with:
+          script: |
+            try {
+              const { data } = await github.rest.repos.getLatestRelease({
+                owner: 'GuNanOvO',
+                repo: 'openwrt-tailscale'
+              })
+              return { tag: data?.tag_name || '' }
+            } catch (error) {
+              return { tag: '' }
+            }
+      
+      - name: Compare versions
+        id: compare
         run: |
-          latest_tag=$(curl -s "https://api.github.com/repos/${{ env.REPO }}/git/refs/tags" \
-            | jq -r '.[].ref | split("/")[-1]' \
-            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
-            | sort -V | tail -n 1)
-          echo "TAG=$latest_tag" >> "$GITHUB_OUTPUT"
-          echo "Latest ${{ env.SOFTWARE_NAME }} Tag: $latest_tag"
-      - name: Get latest ${{ env.SOFTWARE_NAME }} Small tag
-        id: tag_small
-        run: |
-          latest_tag_small=$(
-            curl -s "https://api.github.com/repos/${{ env.REPO_SMALL }}/releases/latest" \
-            | grep -oP '"tag_name": "\K(.*)(?=")' || echo ""
-          )
-          echo "TAG_SMALL=$latest_tag_small" >> "$GITHUB_OUTPUT"
-          echo "Latest ${{ env.SOFTWARE_NAME }} Small Tag: $latest_tag_small"
+          if [ "${{ steps.get_upstream.outputs.tag }}" != "${{ steps.get_small.outputs.tag }}" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+          fi
+
   build:
+    name: Build for ${{ matrix.platform.id }}
+    needs: version-check
+    if: needs.version-check.outputs.should_build == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    needs: check-versions
-    if: needs.check-versions.outputs.TAG_SMALL != needs.check-versions.outputs.TAG
-    env:
-      TAG: ${{ needs.check-versions.outputs.TAG }}
     strategy:
       matrix:
-        go-version: [stable]
-        os: [linux]
-        platform:
-          - arm
-          - arm64
-          - mips
-          - mipsle
-          - mips64
-          - mips64le
-          - 386        # for i386
-          - amd64      # for x86_64
-          - 386-geode  # for geode
+        platform: [
+          { id: 'arm',    goarch: 'arm',    flags: '' },
+          { id: 'arm64',  goarch: 'arm64',  flags: '' },
+          { id: 'mips',   goarch: 'mips',   flags: 'GOMIPS=softfloat' },
+          { id: 'mipsle', goarch: 'mips',   flags: 'GOMIPS=softfloat' },
+          { id: 'mips64',  goarch: 'mips64', flags: 'GOMIPS=softfloat' },
+          { id: 'mips64le', goarch: 'mips64le', flags: 'GOMIPS=softfloat' },
+          { id: '386',     goarch: '386',    flags: '' },
+          { id: 'amd64',  goarch: 'amd64',  flags: 'CGO_ENABLED=1 CC=musl-gcc', setup: 'apt-get install -y musl-tools' },
+          { id: 'geode',  goarch: '386',    flags: 'GO386=softfloat' }
+        ]
+      fail-fast: false
+
     steps:
-      - name: Checkout repository
+      - name: Checkout source
         uses: actions/checkout@v4
         with:
           repository: ${{ env.REPO }}
-          ref: ${{ env.TAG }}
+          ref: ${{ needs.version-check.outputs.upstream_tag }}
+          path: src
+
+      - name: Setup build environment
+        run: |
+          ${{ matrix.platform.setup || 'echo "No additional setup required"' }}
+          
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
-      - name: Download Go modules
-        run: go mod download
-      - name: Cross-compile
+          go-version: stable
+          cache: true
+
+      - name: Build binary
+        working-directory: ./src
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.platform.goarch }}
+          GOMIPS: ${{ matrix.platform.gomips || '' }}
+          GO386: ${{ matrix.platform.go386 || '' }}
+          CGO_ENABLED: ${{ matrix.platform.cgo_enabled || 0 }}
+          CC: ${{ matrix.platform.cc || '' }}
         run: |
-          if [[ "${{ matrix.platform }}" == "386-geode" ]]; then
-            GOOS=linux GOARCH=386 GO386=softfloat ./build_dist.sh \
+          output_name="${{ env.FILE_NAME }}-${{ matrix.platform.id }}"
+          ./build_dist.sh \
             --extra-small --box \
-            -o "${{ env.FILE_NAME }}-${{ matrix.os }}-386-geode" ./cmd/${{ env.FILE_NAME }}
-          elif [[ "${{ matrix.platform }}" == "mipsle" ]]; then
-            GOOS=${{ matrix.os }} GOARCH=${{ matrix.platform }} GOMIPS=softfloat ./build_dist.sh \
-            --extra-small --box \
-            -o "${{ env.FILE_NAME }}-${{ matrix.os }}-${{ matrix.platform }}" ./cmd/${{ env.FILE_NAME }}
-          elif [[ "${{ matrix.platform }}" == "amd64" ]]; then
-            sudo apt-get update
-            sudo apt-get install -y musl-tools
-            CGO_ENABLED=1 CC=musl-gcc GOOS=${{ matrix.os }} GOARCH=${{ matrix.platform }} \
-            ./build_dist.sh --extra-small --box \
-            -o "${{ env.FILE_NAME }}-${{ matrix.os }}-${{ matrix.platform }}" ./cmd/${{ env.FILE_NAME }}
-          else
-            GOOS=${{ matrix.os }} GOARCH=${{ matrix.platform }} ./build_dist.sh \
-            --extra-small --box \
-            -o "${{ env.FILE_NAME }}-${{ matrix.os }}-${{ matrix.platform }}" ./cmd/${{ env.FILE_NAME }}
+            -o "../${{ env.ARTIFACT_DIR }}/$output_name" \
+            ./cmd/${{ env.FILE_NAME }}
+          
+          # Verify the binary was created
+          if [ ! -f "../${{ env.ARTIFACT_DIR }}/$output_name" ]; then
+            echo "::error::Build failed for ${{ matrix.platform.id }}"
+            exit 1
           fi
-      - name: Upload built binary
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.FILE_NAME }}-${{ matrix.os }}-${{ matrix.platform }}
-          path: ./${{ env.FILE_NAME }}-${{ matrix.os }}-${{ matrix.platform }}
-  publish:
+          name: ${{ env.FILE_NAME }}-${{ matrix.platform.id }}
+          path: ${{ env.ARTIFACT_DIR }}/${{ env.FILE_NAME }}-${{ matrix.platform.id }}
+
+  release:
+    name: Create Release
+    needs: [version-check, build]
+    if: needs.version-check.outputs.should_build == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    needs:
-      - build
-      - check-versions
-    if: needs.check-versions.outputs.TAG_SMALL != needs.check-versions.outputs.TAG
     env:
-      TAG: ${{ needs.check-versions.outputs.TAG }}
+      RELEASE_TAG: ${{ needs.version-check.outputs.upstream_tag }}
     steps:
-      - name: Get UPX latest version
-        id: get-upx-version
+      - name: Prepare workspace
         run: |
-          echo "UPX_VERSION=$(
-            curl -s https://api.github.com/repos/upx/upx/releases/latest \
-            | jq -r '.tag_name' \
-            | cut -c 2-
-          )" >> "$GITHUB_ENV"
-      - name: Download UPX
-        run: |
-          wget -q "https://github.com/upx/upx/releases/latest/download/upx-${{ env.UPX_VERSION }}-amd64_linux.tar.xz"
-          tar --to-stdout -xf "upx-${{ env.UPX_VERSION }}-amd64_linux.tar.xz" \
-            "upx-${{ env.UPX_VERSION }}-amd64_linux/upx" > "${PWD}/upx"
-          chmod -v +x "${PWD}/upx"
-      - name: Download built binaries
+          mkdir -p ${{ env.ARTIFACT_DIR }}
+          mkdir -p compressed
+
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: ${{ env.FILE_NAME }}-*
-      - name: Moving files
+          path: ${{ env.ARTIFACT_DIR }}
+
+      - name: Setup UPX
+        uses: crazy-max/ghaction-upx@v2
+        with:
+          version: latest
+
+      - name: Process binaries
         run: |
-          for dir in "${{ env.FILE_NAME }}-"*; do
-            mv -v "${dir}" "${dir}.d"
-            mv -v "${dir}.d/${{ env.FILE_NAME }}-"* .
-            rmdir -v "${dir}.d"
-          done
-          chmod -v +x "${{ env.FILE_NAME }}-"*
-      - name: Compress Binary with UPX
-        run: |
-          for file in "${{ env.FILE_NAME }}-"*; do
-            if [[ "$file" == *"mips64"* || "$file" == *"mips64le"* ]]; then
-              echo "Skipping UPX compression for $file due to unsupported format"
-            else
-            cp "$file" "$file-normal"
-              "${PWD}/upx" --lzma --best --no-progress "$file"
+          # Process each binary
+          for bin in ${{ env.ARTIFACT_DIR }}/${{ env.FILE_NAME }}-*; do
+            filename=$(basename "$bin")
+            
+            # Skip unsupported platforms
+            if [[ "$filename" =~ (mips64|mips64le) ]]; then
+              echo "Skipping UPX for $filename"
+              cp "$bin" "compressed/${filename}-normal"
+              continue
             fi
+            
+            # Create uncompressed copy
+            cp "$bin" "compressed/${filename}-normal"
+            
+            # Compress with UPX
+            upx --lzma --best --no-progress "$bin" -o "compressed/$filename"
           done
-      - name: Create checksums
+
+      - name: Generate release files
         run: |
-          sha256sum "${{ env.FILE_NAME }}-"* > "checksums.txt"
-      - name: Create info file
-        run: |
-          echo "version ${{ env.TAG }}" > info.txt
-          for file in ${{ env.FILE_NAME }}-*; do
-            size=$(stat -c %s "$file")
-            echo "$file $size bytes" >> info.txt
-          done
-      - name: Checkout ${{ env.SOFTWARE_NAME }} Small repository
-        uses: actions/checkout@v4
+          # Create checksums
+          cd compressed
+          sha256sum * > checksums.txt
+          
+          # Create info file
+          {
+            echo "Version: ${{ env.RELEASE_TAG }}"
+            echo "Build date: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            echo ""
+            echo "File sizes:"
+            for file in ${{ env.FILE_NAME }}-*; do
+              size=$(stat -c %s "$file")
+              echo "$file $size bytes"
+            done
+          } > build-info.txt
+          cd ..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
         with:
-          path: tools
-          repository: ${{ env.REPO_SMALL }}
-      - name: Create tag in ${{ env.SOFTWARE_NAME }} Small repository
-        run: |
-          cd tools
-          if git rev-parse --quiet --verify "refs/tags/${{ env.TAG }}"; then
-            echo "Tag already exists"
-            exit 0
-          else
-            echo "Tag does not exist, creating"
-            git tag "${{ env.TAG }}"
-            git push --tags
-          fi
-      - name: Create Release
-        if: github.ref == 'refs/tags/${{ env.TAG }}'
-        uses: ncipollo/release-action@v1
-        with:
-          name: Small ${{ env.SOFTWARE_NAME }} ${{ env.TAG }}
-          tag: ${{ env.TAG }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          draft: false
-          prerelease: false
-          artifacts: |
-            ${{ env.FILE_NAME }}-*
-            checksums.txt
-            info.txt
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "Smaller ${{ env.SOFTWARE_NAME }} ${{ env.RELEASE_TAG }}"
           body: |
-            🚀 **Small ${{ env.SOFTWARE_NAME }} build ${{ env.TAG }}**
+            ## 🚀 Smaller Tailscale / 更小的Tailscale
+            **Version | 版本:** ${{ env.RELEASE_TAG }}  
+            **Build date | 构建日期:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')  
+            **Changelog | 更新日志:** https://github.com/${{ env.REPO }}/releases/tag/${{ env.TAG }}  
 
-            📜 完整更新日志请访问：  
-            https://github.com/${{ env.REPO }}/releases/tag/${{ env.TAG }}
+            ### Build Features
+            - Combined `tailscale` & `tailscaled` into single binary  
+            - Combined binary with `--extra-small` flag  
+            - UPX compressed (except mips64 variants)  
 
-            🔧 **本次构建包含以下优化步骤：**
+            ### Requirements
+            - **Storage**: less than 10MB (UPX compressed)  
+            - **RAM**: about 60MB (during operation)  
+            - **Warning**: May not work on devices with <256MB RAM
 
-            * 🛠️ 将 `tailscale` 与 `tailscaled` 合并为单一二进制文件  
-            * 📦 使用 `--extra-small` 极简构建选项  
-            * 🗜️ 通过 UPX 压缩工具对二进制文件进行压缩  
+            ### About -normal version
+            May provide better security:
+            - `filename-normal`: Original binary
+            - `filename`: UPX compressed
 
-            ---
+            ### 构建特性
+            - 将 `tailscale` 与 `tailscaled` 合并为单一二进制文件  
+            - 使用 `--extra-small` 极简编译选项  
+            - UPX 压缩 (mips64架构除外)  
 
-            🔒 **关于 `normal` 后缀构建的说明：**  
-            带有 `normal` 后缀的构建版本**未使用 UPX 压缩**。  
-            这可能会提供更好的安全性，因为 UPX 压缩有时会触发安全扫描的误报。  
-            如果安全性是优先考虑的因素，建议使用 `normal` 版本。
+            ### 需求说明
+            - **存储空间**: 小于 10MB (UPX 压缩后)  
+            - **运行内存**: 大约 60MB (运行时)  
+            - **警告**: 内存小于 256MB 的设备可能无法运行  
 
-            ---
+            ### 未压缩版本说明
+            可能提供更好的安全性:
+            - `filename-normal`: 原始二进制
+            - `filename`: UPX压缩版本
+          files: |
+            compressed/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            📜 For a complete changelog, go to:  
-            https://github.com/${{ env.REPO }}/releases/tag/${{ env.TAG }}
-            
-            🔧 **This release was created by:**
-            
-            * 🛠️ Building a combined binary of `tailscale` and `tailscaled`  
-            * 📦 Using the build option `--extra-small`  
-            * 🗜️ Compressing the binary with UPX  
-            
-            ---
-            
-            🔒 **Note about `normal` suffix builds:**  
-            The builds with the `normal` suffix are **not compressed with UPX**.  
-            This may provide better security, as UPX compression can sometimes trigger false positives in security scans.  
-            If security is a priority, consider using the `normal` version.
-
+      - name: Sync to small repo
+        uses: actions/github-script@v6
+        with:
+          script: |
+            await github.rest.git.createTag({
+              owner: 'GuNanOvO',
+              repo: 'openwrt-tailscale',
+              tag: '${{ env.RELEASE_TAG }}',
+              message: 'Release ${{ env.RELEASE_TAG }}',
+              object: '${{ github.sha }}',
+              type: 'commit'
+            })
