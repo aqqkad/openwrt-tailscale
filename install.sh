@@ -202,7 +202,7 @@ get_tailscale_info() {
 
     if [ "$USE_CUSTOM_PROXY" == "true" ]; then
 
-        attempt_url="$available_proxy/$TAILSCALE_URL/download/info.txt"
+        attempt_url="$available_proxy/$TAILSCALE_URL/download/build-info.txt"
         tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "version " | awk '{print $2}')
         file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "$tailscale_file_name " | awk '{print $2}')
 
@@ -215,7 +215,7 @@ get_tailscale_info() {
     else
         for attempt_times in $attempt_range; do
             for attempt_proxy in $URL_PROXYS; do
-                attempt_url="$attempt_proxy/$TAILSCALE_URL/download/info.txt"
+                attempt_url="$attempt_proxy/$TAILSCALE_URL/download/build-info.txt"
                 tailscale_latest_version=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "version " | awk '{print $2}')
                 file_size=$(wget -qO- --timeout=$attempt_timeout "$attempt_url" | grep "$tailscale_file_name " | awk '{print $2}')
 
