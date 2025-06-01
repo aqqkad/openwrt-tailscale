@@ -11,7 +11,6 @@ env:
   REPO: "tailscale/tailscale"
   REPO_SMALL: "GuNanOvO/openwrt-tailscale"
   ARTIFACT_DIR: "artifacts"
-
 jobs:
   version-check:
     name: Check Version Differences
@@ -25,12 +24,14 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { data } = await github.rest.repos.getLatestRelease({
+            const releases = await github.rest.repos.listReleases({
               owner: 'tailscale',
-              repo: 'tailscale'
-            })
-            return { tag: data.tag_name }
-      
+              repo: 'tailscale',
+              per_page: 5
+            });
+            const latest = releases.data.find(r => !r.draft);
+            core.setOutput('tag', latest.tag_name);
+
       - name: Get small repo version
         id: get_small
         uses: actions/github-script@v6
@@ -40,12 +41,12 @@ jobs:
               const { data } = await github.rest.repos.getLatestRelease({
                 owner: 'GuNanOvO',
                 repo: 'openwrt-tailscale'
-              })
-              return { tag: data?.tag_name || '' }
+              });
+              core.setOutput('tag', data?.tag_name || '');
             } catch (error) {
-              return { tag: '' }
+              core.setOutput('tag', '');
             }
-      
+
       - name: Compare versions
         id: compare
         run: |
@@ -70,7 +71,7 @@ jobs:
           { id: 'mips64',  goarch: 'mips64', flags: 'GOMIPS=softfloat' },
           { id: 'mips64le', goarch: 'mips64le', flags: 'GOMIPS=softfloat' },
           { id: '386',     goarch: '386',    flags: '' },
-          { id: 'amd64',  goarch: 'amd64',  flags: 'CGO_ENABLED=1 CC=musl-gcc', setup: 'apt-get install -y musl-tools' },
+          { id: 'amd64',  goarch: 'amd64',  flags: 'CGO_ENABLED=1 CC=musl-gcc', setup: 'sudo apt-get update && sudo apt-get install -y musl-tools' },
           { id: 'geode',  goarch: '386',    flags: 'GO386=softfloat' }
         ]
       fail-fast: false
@@ -104,6 +105,7 @@ jobs:
           CC: ${{ matrix.platform.cc || '' }}
         run: |
           output_name="${{ env.FILE_NAME }}-${{ matrix.platform.id }}"
+          mkdir -p ../${{ env.ARTIFACT_DIR }}
           ./build_dist.sh \
             --extra-small --box \
             -o "../${{ env.ARTIFACT_DIR }}/$output_name" \
@@ -147,6 +149,7 @@ jobs:
       - name: Process binaries
         run: |
           # Process each binary
+          mkdir -p compressed
           for bin in ${{ env.ARTIFACT_DIR }}/${{ env.FILE_NAME }}-*; do
             filename=$(basename "$bin")
             
@@ -192,7 +195,7 @@ jobs:
             ## 🚀 Smaller Tailscale / 更小的Tailscale
             **Version | 版本:** ${{ env.RELEASE_TAG }}  
             **Build date | 构建日期:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')  
-            **Changelog | 更新日志:** https://github.com/${{ env.REPO }}/releases/tag/${{ env.TAG }}  
+            **Changelog | 更新日志:** https://github.com/${{ env.REPO }}/releases/tag/${{ env.RELEASE_TAG }}
 
             ### Build Features
             - Combined `tailscale` & `tailscaled` into single binary  
