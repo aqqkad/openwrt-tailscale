@@ -120,7 +120,7 @@ jobs:
           CGO_ENABLED: ${{ matrix.platform.cgo_enabled || 0 }}
           CC: ${{ matrix.platform.cc || '' }}
         run: |
-          output_name="${{ env.FILE_NAME }}-${{ matrix.platform.id }}"
+          output_name="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}"
           mkdir -p ../${{ env.ARTIFACT_DIR }}
           ./build_dist.sh \
             --extra-small --box \
