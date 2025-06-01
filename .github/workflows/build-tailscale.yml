@@ -19,20 +19,20 @@ jobs:
       should_build: ${{ steps.compare.outputs.should_build }}
       upstream_tag: ${{ steps.get_upstream.outputs.tag }}
     steps:
-      - name: Get upstream version
+      - name: Get latest tag from tailscale
         id: get_upstream
         uses: actions/github-script@v6
         with:
           script: |
-            const releases = await github.rest.repos.listReleases({
+            const tags = await github.rest.repos.listTags({
               owner: 'tailscale',
               repo: 'tailscale',
-              per_page: 5
+              per_page: 1
             });
-            const latest = releases.data.find(r => !r.draft);
-            core.setOutput('tag', latest.tag_name);
+            const latestTag = tags.data[0]?.name || '';
+            core.setOutput('tag', latestTag);
 
-      - name: Get small repo version
+      - name: Get latest release tag from openwrt-tailscale
         id: get_small
         uses: actions/github-script@v6
         with:
@@ -50,6 +50,8 @@ jobs:
       - name: Compare versions
         id: compare
         run: |
+          echo "Upstream: ${{ steps.get_upstream.outputs.tag }}"
+          echo "Local: ${{ steps.get_small.outputs.tag }}"
           if [ "${{ steps.get_upstream.outputs.tag }}" != "${{ steps.get_small.outputs.tag }}" ]; then
             echo "should_build=true" >> $GITHUB_OUTPUT
           else
