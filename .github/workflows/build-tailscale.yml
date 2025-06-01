@@ -155,7 +155,7 @@ jobs:
           mkdir -p compressed
           for bin in ${{ env.ARTIFACT_DIR }}/${{ env.FILE_NAME }}-*; do
             filename=$(basename "$bin")
-            
+            chmod -vp +x "$bin/$filename"
             # Skip unsupported platforms
             if [[ "$filename" =~ (mips64|mips64le) ]]; then
               echo "Skipping UPX for $filename"
