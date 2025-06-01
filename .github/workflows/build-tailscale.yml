@@ -159,12 +159,12 @@ jobs:
             # Skip unsupported platforms
             if [[ "$filename" =~ (mips64|mips64le) ]]; then
               echo "Skipping UPX for $filename"
-              cp -r "$bin" "compressed/${filename}-normal"
+              cp "${{ env.ARTIFACT_DIR }}/$bin" "compressed/${filename}-normal"
               continue
             fi
             
             # Create uncompressed copy
-            cp -r "$bin" "compressed/${filename}-normal"
+            cp "${{ env.ARTIFACT_DIR }}/$bin" "compressed/${filename}-normal"
             
             # Compress with UPX
             upx --lzma --best --no-progress "$bin" -o "compressed/$filename"
