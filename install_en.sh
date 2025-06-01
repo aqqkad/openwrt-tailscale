@@ -149,7 +149,7 @@ get_tailscale_info() {
         tailscale_file_name="tailscaled-linux-${arch}"
     fi
     attempt_url="$TAILSCALE_URL/download/build-info.txt"
-    tailscale_latest_version=$(wget -qO- "$attempt_url" | grep "version " | awk '{print $2}')
+    tailscale_latest_version=$(wget -qO- "$attempt_url" | grep "Version: " | awk '{print $2}')
     file_size=$(wget -qO- "$attempt_url" | grep "$tailscale_file_name " | awk '{print $2}')
 
     
