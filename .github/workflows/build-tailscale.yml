@@ -79,16 +79,16 @@ jobs:
     strategy:
       matrix:
         platform: [
-          { id: 'arm',    goarch: 'arm',    flags: '' },
-          { id: 'arm64',  goarch: 'arm64',  flags: '' },
-          { id: 'mips',   goarch: 'mips',   flags: 'GOMIPS=softfloat' },
-          { id: 'mipsle', goarch: 'mips',   flags: 'GOMIPS=softfloat' },
-          { id: 'mips64',  goarch: 'mips64', flags: 'GOMIPS=softfloat' },
-          { id: 'mips64le', goarch: 'mips64le', flags: 'GOMIPS=softfloat' },
-          { id: '386',     goarch: '386',    flags: '' },
-          { id: 'amd64',  goarch: 'amd64',  flags: 'CGO_ENABLED=1 CC=musl-gcc', setup: 'sudo apt-get update && sudo apt-get install -y musl-tools' },
-          { id: 'geode',  goarch: '386',    flags: 'GO386=softfloat' }
-        ]
+            { id: 'arm',    goarch: 'arm' },
+            { id: 'arm64',  goarch: 'arm64' },
+            { id: 'mips',   goarch: 'mips',   gomips: 'softfloat' },
+            { id: 'mipsle', goarch: 'mipsle', gomips: 'softfloat' },
+            { id: 'mips64', goarch: 'mips64', gomips: 'softfloat' },
+            { id: 'mips64le', goarch: 'mips64le', gomips: 'softfloat' },
+            { id: '386',    goarch: '386' },
+            { id: 'amd64',  goarch: 'amd64', cgo_enabled: '1', cc: 'musl-gcc', setup: 'sudo apt-get update && sudo apt-get install -y musl-tools' },
+            { id: 'geode',  goarch: '386', go386: 'softfloat' }
+          ]
       fail-fast: false
 
     steps:
