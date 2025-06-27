@@ -92,8 +92,8 @@ Utilizes the `--extra-small` compilation flag from Tailscale's [official documen
 
 ## 🙏 Special Thanks
 
-**[📦 tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt)**: Provided key implementation ideas about temporary installation for this script.  
-**[📦 glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater)**: Provided key implementation ideas about persistent installationfor and compression methon this script.  
+**📦 [tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt)**: Provided key implementation ideas about temporary installation for this script.  
+**📦 [glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater)**: Provided key implementation ideas about persistent installationfor and compression methon this script.  
 
 ---
 

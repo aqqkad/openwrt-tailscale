@@ -102,8 +102,8 @@ wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com
 ---
 
 ## 🙏 特别致谢
-**[📦 tailscale-openwrt 项目](https://github.com/CH3NGYZ/tailscale-openwrt)**: 为本脚本提供了临时安装思路  
-**[📦 glinet-tailscale-updater 项目](https://github.com/Admonstrator/glinet-tailscale-updater)**: 为本脚本提供了永久安装与压缩技术思路 
+**📦 [tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt)**: 为本脚本提供了临时安装思路  
+**📦 [glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater)**: 为本脚本提供了永久安装与压缩技术思路 
 
 ---
 
