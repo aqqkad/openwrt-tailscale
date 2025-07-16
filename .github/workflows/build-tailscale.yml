@@ -253,8 +253,6 @@ jobs:
           fi
 
       - name: Package IPK
-        env:
-          VERSION: ${{ needs.version-check.outputs.upstream_tag }}
         run: |
           EPOCH=$(date +%s)
           mkdir -p ipk/usr/bin ipk/etc ipk/lib ipk/CONTROL
@@ -283,6 +281,7 @@ jobs:
 
             for target in ${targets}; do
               ARCH=${target}
+              VERSION=$(echo "${{ needs.version-check.outputs.upstream_tag }}" | sed 's/^v//')
 
               if [[ -z "$compressed_bin" ]]; then
                 ipk_compressed="tailscale_${VERSION}_${ARCH}_normal.ipk"
@@ -297,6 +296,7 @@ jobs:
                   -e "s/__EPOCH__/${EPOCH}/" \
                   packaging/CONTROL/control > ipk/CONTROL/control
 
+              VERSION=${{ needs.version-check.outputs.upstream_tag }}
               tar --format=ustar -C ipk/CONTROL -czf control.tar.gz .
               tar --format=ustar -C ipk -czf data.tar.gz ./usr ./etc ./lib
               if [[ "${bin}" =~ (normal) ]]; then
@@ -321,7 +321,7 @@ jobs:
 
           for target in ${targets}; do
             ARCH=${target}
-            VERSION=$(echo "${{ needs.version-check.outputs.upstream_tag }}" | sed 's/^v//')
+            VERSION=${{ needs.version-check.outputs.upstream_tag }}
 
             if [[ "${{ matrix.platform.id }}" =~ ^mips64 ]]; then
               binary_compressed="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}-normal"
@@ -429,27 +429,31 @@ jobs:
 
           # Set release body with table included
           release_body="## 🚀 Smaller Tailscale / 更小的Tailscale
+
           **Version 版本** :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${{ env.RELEASE_TAG }}   
           **Build date 构建日期** : &nbsp;&nbsp;&nbsp;&nbsp;${{ env.BUILD_DATE }}   
           **Changelog 更新日志** : &nbsp;&nbsp;&nbsp;https://github.com/${{ env.REPO }}/releases/tag/${{ env.RELEASE_TAG }}   
+
           ---
-                ### 🛠️ Build Features / 构建特性
-                - Combined \`tailscale\` & \`tailscaled\` into single binary / 合并为单一二进制文件  
-                - Built with \`--extra-small\` flag / 极简编译选项  
-                - UPX compressed (except mips64) / UPX 压缩 (mips64除外)  
-                ### ⚠️ Requirements / 需求说明
-                - **Storage/存储空间**: <10MB (UPX)  
-                - **RAM/运行内存**: ~60MB  
-                - **Warning/警告**: May not work on devices with <256MB RAM / 内存小于256MB的设备可能无法运行  
-                ### 📦 About -normal version / 未压缩版本说明
-                - \`filename-normal\`: Original binary / 原始二进制  
-                - \`filename\`: UPX compressed / UPX压缩版本  
-                ### 📖 How to Determine the Target Platform / 如何确定目标平台
-                Run the following command on your OpenWRT device / 在您的OpenWRT设备上运行以下命令:
-                \`\`\`bash
-                opkg print-architecture
-                \`\`\`
-                This will list supported architectures, excluding \`all\` and \`noarch\` / 这将列出支持的架构，排除\`all\`和\`noarch\`
+
+          ### 🛠️ Build Features / 构建特性
+          - Combined \`tailscale\` & \`tailscaled\` into single binary / 合并为单一二进制文件  
+          - Built with \`--extra-small\` flag / 极简编译选项  
+          - UPX compressed (except mips64) / UPX 压缩 (mips64除外)  
+          ### ⚠️ Requirements / 需求说明
+          - **Storage/存储空间**: <10MB (UPX)  
+          - **RAM/运行内存**: ~60MB  
+          - **Warning/警告**: May not work on devices with <256MB RAM / 内存小于256MB的设备可能无法运行  
+          ### 📦 About -normal version / 未压缩版本说明
+          - \`filename-normal\`: Original binary / 原始二进制  
+          - \`filename\`: UPX compressed / UPX压缩版本  
+          ### 📖 How to Determine the Target Platform / 如何确定目标平台
+          Run the following command on your OpenWRT device / 在您的OpenWRT设备上运行以下命令:
+          \`\`\`bash
+          opkg print-architecture
+          \`\`\`
+          This will list supported architectures, excluding \`all\` and \`noarch\` / 这将列出支持的架构，排除\`all\`和\`noarch\`
+
           ---
 
           ### 📥 Download Links / 下载链接
