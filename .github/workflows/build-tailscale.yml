@@ -79,16 +79,104 @@ jobs:
     strategy:
       matrix:
         platform: [
-            { id: 'arm',    goarch: 'arm' },
-            { id: 'arm64',  goarch: 'arm64' },
-            { id: 'mips',   goarch: 'mips',   gomips: 'softfloat' },
-            { id: 'mipsle', goarch: 'mipsle', gomips: 'softfloat' },
-            { id: 'mips64', goarch: 'mips64', gomips: 'softfloat' },
-            { id: 'mips64le', goarch: 'mips64le', gomips: 'softfloat' },
-            { id: '386',    goarch: '386' },
-            { id: 'amd64',  goarch: 'amd64', cgo_enabled: '1', cc: 'musl-gcc', setup: 'sudo apt-get update && sudo apt-get install -y musl-tools' },
-            { id: 'geode',  goarch: '386', go386: 'softfloat' }
-          ]
+          {
+            id: 'arm',
+            goarch: 'arm',
+            openwrt_targets: 
+              [
+              'arm_arm1176jzf-s_vfp',
+              'arm_arm926ej-s',
+              'arm_cortex-a15_neon-vfpv4',
+              'arm_cortex-a5_vfpv4',
+              'arm_cortex-a7',
+              'arm_cortex-a7_neon-vfpv4',
+              'arm_cortex-a7_vfpv4',
+              'arm_cortex-a8_vfpv3',
+              'arm_cortex-a9',
+              'arm_cortex-a9_neon',
+              'arm_cortex-a9_vfpv3-d16',
+              'arm_fa526',
+              'arm_xscale',
+              'arm_mpcore'
+            ]
+          },
+          {
+            id: 'arm64',
+            goarch: 'arm64',
+            openwrt_targets: [
+              'aarch64_cortex-a53',
+              'aarch64_cortex-a72',
+              'aarch64_cortex-a76',
+              'aarch64_generic'
+            ]
+          },
+          {
+            id: 'mips',
+            goarch: 'mips',
+            gomips: 'softfloat',
+            openwrt_targets: [
+              'mips_24kc',
+              'mips_4kec',
+              'mips_mips32'
+            ]
+          },
+          {
+            id: 'mipsle',
+            goarch: 'mipsle',
+            gomips: 'softfloat',
+            openwrt_targets: [
+              'mipsel_24kc',
+              'mipsel_24kc_24kf',
+              'mipsel_74kc',
+              'mipsel_mips32'
+            ]
+          },
+          {
+            id: 'mips64',
+            goarch: 'mips64',
+            gomips: 'softfloat',
+            openwrt_targets: [
+              'mips64_mips64r2',
+              'mips64_octeonplus'
+            ]
+          },
+          {
+            id: 'mips64le',
+            goarch: 'mips64le',
+            gomips: 'softfloat',
+            openwrt_targets: [
+              'mips64el_mips64r2'
+            ]
+          },
+          {
+            id: '386',
+            goarch: '386',
+            openwrt_targets: [
+              'i386_pentium-mmx',
+              'i386_pentium4'
+            ]
+          },
+          {
+            id: 'amd64',
+            goarch: 'amd64',
+            cgo_enabled: '1',
+            cc: 'musl-gcc',
+            setup: 'sudo apt-get update && sudo apt-get install -y musl-tools',
+            openwrt_targets: [
+              'x86_64'
+            ]
+          },
+          {
+            id: 'geode',
+            goarch: '386',
+            go386: 'softfloat',
+            openwrt_targets: [
+              'i386_pentium-mmx',
+              'i386_pentium4'
+            ]
+          }
+        ]
+
       fail-fast: false
 
     steps:
@@ -110,6 +198,11 @@ jobs:
           cache: true
           cache-dependency-path: src/go.sum
 
+      - name: Setup UPX
+        uses: crazy-max/ghaction-upx@v2
+        with:
+          version: latest
+
       - name: Build binary
         working-directory: ./src
         env:
@@ -121,23 +214,114 @@ jobs:
           CC: ${{ matrix.platform.cc || '' }}
         run: |
           output_name="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}"
-          mkdir -p ../${{ env.ARTIFACT_DIR }}
+          mkdir -p ../build
           ./build_dist.sh \
             --extra-small --box \
-            -o "../${{ env.ARTIFACT_DIR }}/$output_name" \
+            -o "../build/$output_name" \
             ./cmd/${{ env.FILE_NAME }}
           
           # Verify the binary was created
-          if [ ! -f "../${{ env.ARTIFACT_DIR }}/$output_name" ]; then
+          if [ ! -f "../build/$output_name" ]; then
             echo "::error::Build failed for ${{ matrix.platform.id }}"
             exit 1
           fi
+
+      - name: Process binary
+        run: |
+          # Process binary
+          mkdir -p compressed
+          filename="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}"
+          file="build/${filename}"
+          chmod -v +x "${file}"
+          # Create uncompressed copy
+          cp -p "${file}" "compressed/${filename}-normal"
+          cp -p "${file}" "${{ env.ARTIFACT_DIR }}/${filename}-normal"
+          # Skip unsupported platforms
+          if [[ "${filename}" =~ (mips64|mips64le) ]]; then
+            echo "Skipping UPX for ${filename}"
+          else
+            # Compress with UPX
+            upx --lzma --best --no-progress "${file}" -o "compressed/${filename}"
+            cp -p "compressed/${filename}" "${{ env.ARTIFACT_DIR }}/${filename}"
+          fi
+
+      - name: Package IPK
+        env:
+          VERSION: ${{ needs.version-check.outputs.upstream_tag }}
+        run: |
+          EPOCH=$(date +%s)
+          mkdir -p ipk/usr/bin ipk/etc ipk/lib ipk/CONTROL
+          for bin in compressed/${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}*; do
+            basebin=$(basename "$bin")
+
+            if [[ "$basebin" =~ -normal$ ]]; then
+              normal_bin="$basebin"
+            else
+              compressed_bin="$basebin"
+            fi
+
+            install -m 0755 "${bin}" ipk/usr/bin/tailscaled
+            ln -svf tailscaled ipk/usr/bin/tailscale
+            SIZE=$(du -ks ipk/usr/bin | awk '{print $1}')
+
+            cp -a etc/* ipk/etc/
+            cp -a lib/* ipk/lib/
+            cp -a CONTROL/* ipk/CONTROL/
+
+            chmod +x ipk/etc/init.d/tailscale || true
+            echo '2.0' > ipk/debian-binary
+
+            # 获取 OpenWrt 目标平台信息
+            targets_json='${{ toJson(matrix.platform.openwrt_targets) }}'
+            targets=$(echo "${targets_json}" | jq -r '.[]')
+
+            for target in $targets; do
+              ARCH=${target}
+
+              # 生成 target 相关的 IPK 文件名
+              if [[ -z "$compressed_bin" ]]; then
+                ipk_compressed="tailscale_${VERSION}_${ARCH}_normal.ipk"
+              else
+                ipk_compressed="tailscale_${VERSION}_${ARCH}.ipk"
+              fi
+              ipk_normal="tailscale_${VERSION}_${ARCH}_normal.ipk"
+
+              # 创建 IPK 文件
+              sed -e "s/__VERSION__/${VERSION}/" \
+                  -e "s/__ARCH__/${ARCH}/" \
+                  -e "s/__SIZE__/${SIZE}/" \
+                  -e "s/__EPOCH__/${EPOCH}/" \
+                  CONTROL/control > ipk/CONTROL/control
+
+              tar -C ipk/CONTROL -czf control.tar.gz .
+              tar -C ipk -czf data.tar.gz ./usr ./etc ./lib
+              if [[ "${bin}" =~ (normal) ]]; then
+                ar r ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}_normal.ipk control.tar.gz data.tar.gz ipk/debian-binary
+                echo "Created IPK: tailscale_${VERSION}_${ARCH}_normal.ipk"
+              else
+                ar r ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}.ipk control.tar.gz data.tar.gz ipk/debian-binary
+                echo "Created IPK: tailscale_${VERSION}_${ARCH}.ipk"
+              fi
+
+              rm -f control.tar.gz data.tar.gz
+            done
+            rm -f ipk/usr/bin/*
+
+          done
+
+          echo "{\"target\":\"${ARCH}\",\"binary_compressed\":\"${compressed_bin:-$normal_bin}\",\"binary_normal\":\"${normal_bin}\",\"ipk_compressed\":\"${ipk_compressed}\",\"ipk_normal\":\"${ipk_normal}\"}," >> ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
+
+          {
+            echo "["
+            sed '$ s/,$//' ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
+            echo "]"
+          } > ${{ env.ARTIFACT_DIR }}/artifacts.json
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}
-          path: ${{ env.ARTIFACT_DIR }}/${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}
+          path: ${{ env.ARTIFACT_DIR }}/*
 
   release:
     name: Create Release
@@ -150,44 +334,17 @@ jobs:
       - name: Prepare workspace
         run: |
           mkdir -p ${{ env.ARTIFACT_DIR }}
-          mkdir -p compressed
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: ${{ env.ARTIFACT_DIR }}
 
-      - name: Setup UPX
-        uses: crazy-max/ghaction-upx@v2
-        with:
-          version: latest
-
-      - name: Process binaries
-        run: |
-          # Process each binary
-          mkdir -p compressed
-          for bin in ${{ env.ARTIFACT_DIR }}/${{ env.FILE_NAME }}-*; do
-            filename=$(basename "$bin")
-            chmod -v +x "$bin/$filename"
-            # Skip unsupported platforms
-            if [[ "$filename" =~ (mips64|mips64le) ]]; then
-              echo "Skipping UPX for $filename"
-              cp -p "$bin/$filename" "compressed/${filename}-normal"
-              continue
-            fi
-            
-            # Create uncompressed copy
-            cp -p "$bin/$filename" "compressed/${filename}-normal"
-            
-            # Compress with UPX
-            upx --lzma --best --no-progress "$bin/$filename" -o "compressed/$filename"
-          done
-
       - name: Generate release files
         run: |
           echo "BUILD_DATE=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
           # Create checksums
-          cd compressed
+          cd ${{ env.ARTIFACT_DIR }}
           sha256sum * > checksums.txt
           
           # Create info file
@@ -197,63 +354,90 @@ jobs:
             echo ""
             echo "File sizes:"
             for file in ${{ env.FILE_NAME }}-*; do
-              size=$(stat -c %s "$file")
-              echo "$file $size bytes"
+              size=$(stat -c %s "${file}")
+              echo "${file} $size bytes"
             done
           } > build-info.txt
           cd ..
+
+      - name: Generate release markdown
+        id: generate_release_markdown
+        run: |
+          # Read artifacts.json and generate markdown table
+          artifacts_file="${{ env.ARTIFACT_DIR }}/artifacts.json"
           
+          if [[ ! -f "$artifacts_file" ]]; then
+            echo "No artifacts.json found, skipping table generation."
+            exit 1
+          fi
+          
+          # Generate Markdown table
+          table="| Target Platform | Compressed Binary | Normal Binary | Compressed IPK | Normal IPK |\n"
+          table+="|-----------------|-------------------|---------------|-----------------|-----------|\n"
+          
+          jq -r '.[] | "| \(.target) | \(.binary_compressed) | \(.binary_normal) | \(.ipk_compressed) | \(.ipk_normal) |"' $artifacts_file >> table.md
+          
+          # Print the table for debugging
+          cat table.md
+
+          # Set release body with table included
+          release_body="## 🚀 Smaller Tailscale / 更小的Tailscale
+              
+          **Version 版本** :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${{ env.RELEASE_TAG }}   
+          **Build date 构建日期** : &nbsp;&nbsp;&nbsp;${{ env.BUILD_DATE }}   
+          **Changelog 更新日志** : &nbsp;&nbsp;&nbsp;https://github.com/${{ env.REPO }}/releases/tag/${{ env.RELEASE_TAG }}   
+
+          ---
+
+          ### 🛠️ Build Features
+          - Combined \`tailscale\` & \`tailscaled\` into single binary  
+          - Combined binary with \`--extra-small\` flag  
+          - UPX compressed (except mips64 variants)  
+
+          ### ⚠️ Requirements
+          - **Storage**: less than 10MB (UPX compressed)  
+          - **RAM**: about 60MB (during operation)  
+          - **Warning**: May not work on devices with <256MB RAM  
+
+          ### 📦 About -normal version
+          May provide better security:
+          - \`filename-normal\`: Original binary  
+          - \`filename\`: UPX compressed  
+
+          ---
+
+          ### 🛠️ 构建特性
+          - 将 \`tailscale\` 与 \`tailscaled\` 合并为单一二进制文件  
+          - 使用 \`--extra-small\` 极简编译选项  
+          - UPX 压缩 (mips64架构除外)  
+
+          ### ⚠️ 需求说明
+          - **存储空间**: 小于 10MB (UPX 压缩后)  
+          - **运行内存**: 大约 60MB (运行时)  
+          - **警告**: 内存小于 256MB 的设备可能无法运行  
+
+          ### 📦 未压缩版本说明
+          可能提供更好的安全性:
+          - \`filename-normal\`: 原始二进制  
+          - \`filename\`: UPX压缩版本  
+          ---
+
+          ### 🛠️ Build Files / 构建文件
+          $table"
+          
+          echo "$release_body" >> $GITHUB_ENV
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           name: "Smaller ${{ env.SOFTWARE_NAME }} ${{ env.RELEASE_TAG }}"
-          body: |
-            ## 🚀 Smaller Tailscale / 更小的Tailscale
-            
-            **Version  版本** :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${{ env.RELEASE_TAG }}   
-            **Build date  构建日期** : &nbsp;&nbsp;&nbsp;${{ env.BUILD_DATE }}   
-            **Changelog  更新日志** : &nbsp;&nbsp;&nbsp;https://github.com/${{ env.REPO }}/releases/tag/${{ env.RELEASE_TAG }}   
-
-            ---
-
-            ### 🛠️ Build Features
-            - Combined `tailscale` & `tailscaled` into single binary  
-            - Combined binary with `--extra-small` flag  
-            - UPX compressed (except mips64 variants)  
-
-            ### ⚠️ Requirements
-            - **Storage**: less than 10MB (UPX compressed)  
-            - **RAM**: about 60MB (during operation)  
-            - **Warning**: May not work on devices with <256MB RAM
-
-            ### 📦 About -normal version
-            May provide better security:
-            - `filename-normal`: Original binary
-            - `filename`: UPX compressed
-
-            ---
-
-            ### 🛠️ 构建特性
-            - 将 `tailscale` 与 `tailscaled` 合并为单一二进制文件  
-            - 使用 `--extra-small` 极简编译选项  
-            - UPX 压缩 (mips64架构除外)  
-
-            ### ⚠️ 需求说明
-            - **存储空间**: 小于 10MB (UPX 压缩后)  
-            - **运行内存**: 大约 60MB (运行时)  
-            - **警告**: 内存小于 256MB 的设备可能无法运行  
-
-            ### 📦 未压缩版本说明
-            可能提供更好的安全性:
-            - `filename-normal`: 原始二进制
-            - `filename`: UPX压缩版本
-            ---
+          body: ${{ steps.generate_release_markdown.outputs.release_body }}
           files: |
-            compressed/*
+            ${{ env.ARTIFACT_DIR }}/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Sync to small repo
         uses: actions/github-script@v6

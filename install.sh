@@ -35,7 +35,7 @@ https://github.com"
 INIT_URL="/gunanovo/openwrt-tailscale/blob/main/etc/init.d/tailscale"
 # OpenWrt 可写存储分区，通常是 /overlay
 MOUNT_POINT="/"
-PACKAGES_TO_CHECK="libustream-openssl kmod-tun ca-bundle iptables ip6tables kmod-ipt-conntrack kmod-nft-nat"
+PACKAGES_TO_CHECK="libc libustream-openssl kmod-tun ca-bundle iptables ip6tables kmod-ipt-conntrack kmod-nft-nat"
 # tmp tailscale
 TMP_TAILSCALE='#!/bin/sh
                 set -e
