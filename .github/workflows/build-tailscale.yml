@@ -66,9 +66,9 @@ jobs:
           echo "Upstream: ${{ steps.get_upstream.outputs.tag }}"
           echo "Local: ${{ steps.get_small.outputs.tag }}"
           if [ "${{ steps.get_upstream.outputs.tag }}" != "${{ steps.get_small.outputs.tag }}" ]; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "should_build=true" >> ${GITHUB_OUTPUT}
           else
-            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "should_build=false" >> ${GITHUB_OUTPUT}
           fi
 
   build:
@@ -187,6 +187,11 @@ jobs:
           ref: ${{ needs.version-check.outputs.upstream_tag }}
           path: src
 
+      - name: Checkout packaging files
+        uses: actions/checkout@v4
+        with:
+          path: packaging
+
       - name: Setup build environment
         run: |
           ${{ matrix.platform.setup || 'echo "No additional setup required"' }}
@@ -217,11 +222,11 @@ jobs:
           mkdir -p ../build
           ./build_dist.sh \
             --extra-small --box \
-            -o "../build/$output_name" \
+            -o "../build/${output_name}" \
             ./cmd/${{ env.FILE_NAME }}
           
           # Verify the binary was created
-          if [ ! -f "../build/$output_name" ]; then
+          if [ ! -f "../build/${output_name}" ]; then
             echo "::error::Build failed for ${{ matrix.platform.id }}"
             exit 1
           fi
@@ -252,21 +257,21 @@ jobs:
           EPOCH=$(date +%s)
           mkdir -p ipk/usr/bin ipk/etc ipk/lib ipk/CONTROL
           for bin in compressed/${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}*; do
-            basebin=$(basename "$bin")
+            basebin=$(basename "${bin}")
 
-            if [[ "$basebin" =~ -normal$ ]]; then
-              normal_bin="$basebin"
+            if [[ "${basebin}" =~ -normal$ ]]; then
+              normal_bin="${basebin}"
             else
-              compressed_bin="$basebin"
+              compressed_bin="${basebin}"
             fi
 
             install -m 0755 "${bin}" ipk/usr/bin/tailscaled
-            ln -svf tailscaled ipk/usr/bin/tailscale
+            ln -svf tailscaled ipk/usr/bin/tailscale || true
             SIZE=$(du -ks ipk/usr/bin | awk '{print $1}')
 
-            cp -a etc/* ipk/etc/
-            cp -a lib/* ipk/lib/
-            cp -a CONTROL/* ipk/CONTROL/
+            cp -a packaging/etc/* ipk/etc/
+            cp -a packaging/lib/* ipk/lib/
+            cp -a packaging/CONTROL/* ipk/CONTROL/
 
             chmod +x ipk/etc/init.d/tailscale || true
             echo '2.0' > ipk/debian-binary
@@ -275,7 +280,7 @@ jobs:
             targets_json='${{ toJson(matrix.platform.openwrt_targets) }}'
             targets=$(echo "${targets_json}" | jq -r '.[]')
 
-            for target in $targets; do
+            for target in ${targets}; do
               ARCH=${target}
 
               # 生成 target 相关的 IPK 文件名
@@ -291,7 +296,7 @@ jobs:
                   -e "s/__ARCH__/${ARCH}/" \
                   -e "s/__SIZE__/${SIZE}/" \
                   -e "s/__EPOCH__/${EPOCH}/" \
-                  CONTROL/control > ipk/CONTROL/control
+                  packaging/CONTROL/control > ipk/CONTROL/control
 
               tar -C ipk/CONTROL -czf control.tar.gz .
               tar -C ipk -czf data.tar.gz ./usr ./etc ./lib
@@ -304,12 +309,45 @@ jobs:
               fi
 
               rm -f control.tar.gz data.tar.gz
+
             done
             rm -f ipk/usr/bin/*
 
           done
+          
+          # 再次循环遍历所有 target，生成 artifacts.json 清单
+          targets_json='${{ toJson(matrix.platform.openwrt_targets) }}'
+          targets=$(echo "${targets_json}" | jq -r '.[]')
 
-          echo "{\"target\":\"${ARCH}\",\"binary_compressed\":\"${compressed_bin:-$normal_bin}\",\"binary_normal\":\"${normal_bin}\",\"ipk_compressed\":\"${ipk_compressed}\",\"ipk_normal\":\"${ipk_normal}\"}," >> ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
+          : > ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
+
+          for target in ${targets}; do
+            ARCH=${target}
+            VERSION=${{ needs.version-check.outputs.upstream_tag }}
+
+            # mips64 和 mips64le 架构没有压缩版，直接用 normal 版本
+            if [[ "${{ matrix.platform.id }}" =~ ^mips64 ]]; then
+              binary_compressed="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}-normal"
+              ipk_compressed="tailscale_${VERSION}_${ARCH}_normal.ipk"
+              elif [[ "${{ matrix.platform.id }}" =~ ^mips64le ]]; then
+              binary_compressed="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}-normal"
+              ipk_compressed="tailscale_${VERSION}_${ARCH}_normal.ipk"
+              else
+              binary_compressed="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}"
+              ipk_compressed="tailscale_${VERSION}_${ARCH}.ipk"
+            fi
+
+            binary_normal="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}-normal"
+            ipk_normal="tailscale_${VERSION}_${ARCH}_normal.ipk"
+
+            # 检查文件是否存在
+            [ -f "${{ env.ARTIFACT_DIR }}/${binary_compressed}" ] || binary_compressed=""
+            [ -f "${{ env.ARTIFACT_DIR }}/${binary_normal}" ] || binary_normal=""
+            [ -f "${{ env.ARTIFACT_DIR }}/${ipk_compressed}" ] || ipk_compressed=""
+            [ -f "${{ env.ARTIFACT_DIR }}/${ipk_normal}" ] || ipk_normal=""
+
+            echo "{\"target\":\"${ARCH}\",\"binary_compressed\":\"${binary_compressed}\",\"binary_normal\":\"${binary_normal}\",\"ipk_compressed\":\"${ipk_compressed}\",\"ipk_normal\":\"${ipk_normal}\"}," >> ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
+          done
 
           {
             echo "["
@@ -355,7 +393,7 @@ jobs:
             echo "File sizes:"
             for file in ${{ env.FILE_NAME }}-*; do
               size=$(stat -c %s "${file}")
-              echo "${file} $size bytes"
+              echo "${file} ${size} bytes"
             done
           } > build-info.txt
           cd ..
@@ -366,7 +404,7 @@ jobs:
           # Read artifacts.json and generate markdown table
           artifacts_file="${{ env.ARTIFACT_DIR }}/artifacts.json"
           
-          if [[ ! -f "$artifacts_file" ]]; then
+          if [[ ! -f "${artifacts_file}" ]]; then
             echo "No artifacts.json found, skipping table generation."
             exit 1
           fi
@@ -375,7 +413,7 @@ jobs:
           table="| Target Platform | Compressed Binary | Normal Binary | Compressed IPK | Normal IPK |\n"
           table+="|-----------------|-------------------|---------------|-----------------|-----------|\n"
           
-          jq -r '.[] | "| \(.target) | \(.binary_compressed) | \(.binary_normal) | \(.ipk_compressed) | \(.ipk_normal) |"' $artifacts_file >> table.md
+          jq -r '.[] | "| \(.target) | \(.binary_compressed) | \(.binary_normal) | \(.ipk_compressed) | \(.ipk_normal) |"' ${artifacts_file} >> table.md
           
           # Print the table for debugging
           cat table.md
@@ -423,9 +461,9 @@ jobs:
           ---
 
           ### 🛠️ Build Files / 构建文件
-          $table"
+          ${table}"
 
-          echo "$release_body" >> $GITHUB_ENV
+          echo "release_body=${release_body}" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
