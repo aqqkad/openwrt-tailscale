@@ -466,7 +466,9 @@ jobs:
           ### 🛠️ Build Files / 构建文件
           ${table}"
 
-          echo "release_body=${release_body}" >> $GITHUB_OUTPUT
+          echo "release_body<<EOF" >> $GITHUB_OUTPUT
+          echo "${release_body}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
