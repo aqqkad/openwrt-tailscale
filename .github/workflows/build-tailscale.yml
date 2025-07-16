@@ -353,7 +353,7 @@ jobs:
             echo "["
             sed '$ s/,$//' ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
             echo "]"
-          } > ${{ env.ARTIFACT_DIR }}/artifacts.json
+          } > ${{ env.ARTIFACT_DIR }}/artifacts-${{ matrix.platform.id }}.json
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -377,10 +377,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ${{ env.ARTIFACT_DIR }}
+          merge-multiple: true
 
       - name: Generate release files
         run: |
           echo "BUILD_DATE=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
+          jq -s 'add' ${{ env.ARTIFACT_DIR }}/artifacts-*.json > ${{ env.ARTIFACT_DIR }}/artifacts.json
+          rm -rf ${{ env.ARTIFACT_DIR }}/artifacts-*.json
           # Create checksums
           cd ${{ env.ARTIFACT_DIR }}
           sha256sum * > checksums.txt
