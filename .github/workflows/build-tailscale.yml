@@ -10,6 +10,7 @@ env:
   FILE_NAME: "tailscaled"
   REPO: "tailscale/tailscale"
   REPO_SMALL: "GuNanOvO/openwrt-tailscale"
+  REPO_SMALL_OWNER: "GuNanOvO"
   ARTIFACT_DIR: "artifacts"
   BUILD_DATE: ""
 jobs:
@@ -276,14 +277,12 @@ jobs:
             chmod +x ipk/etc/init.d/tailscale || true
             echo '2.0' > ipk/debian-binary
 
-            # 获取 OpenWrt 目标平台信息
             targets_json='${{ toJson(matrix.platform.openwrt_targets) }}'
             targets=$(echo "${targets_json}" | jq -r '.[]')
 
             for target in ${targets}; do
               ARCH=${target}
 
-              # 生成 target 相关的 IPK 文件名
               if [[ -z "$compressed_bin" ]]; then
                 ipk_compressed="tailscale_${VERSION}_${ARCH}_normal.ipk"
               else
@@ -291,7 +290,6 @@ jobs:
               fi
               ipk_normal="tailscale_${VERSION}_${ARCH}_normal.ipk"
 
-              # 创建 IPK 文件
               sed -e "s/__VERSION__/${VERSION}/" \
                   -e "s/__ARCH__/${ARCH}/" \
                   -e "s/__SIZE__/${SIZE}/" \
@@ -315,7 +313,6 @@ jobs:
 
           done
           
-          # 再次循环遍历所有 target，生成 artifacts.json 清单
           targets_json='${{ toJson(matrix.platform.openwrt_targets) }}'
           targets=$(echo "${targets_json}" | jq -r '.[]')
 
@@ -325,7 +322,6 @@ jobs:
             ARCH=${target}
             VERSION=${{ needs.version-check.outputs.upstream_tag }}
 
-            # mips64 和 mips64le 架构没有压缩版，直接用 normal 版本
             if [[ "${{ matrix.platform.id }}" =~ ^mips64 ]]; then
               binary_compressed="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}-normal"
               ipk_compressed="tailscale_${VERSION}_${ARCH}_normal.ipk"
@@ -340,7 +336,6 @@ jobs:
             binary_normal="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}-normal"
             ipk_normal="tailscale_${VERSION}_${ARCH}_normal.ipk"
 
-            # 检查文件是否存在
             [ -f "${{ env.ARTIFACT_DIR }}/${binary_compressed}" ] || binary_compressed=""
             [ -f "${{ env.ARTIFACT_DIR }}/${binary_normal}" ] || binary_normal=""
             [ -f "${{ env.ARTIFACT_DIR }}/${ipk_compressed}" ] || ipk_compressed=""
@@ -413,13 +408,22 @@ jobs:
           fi
           
           # Generate Markdown table
+          owner="${{ env.REPO_SMALL_OWNER }}"
+          repo="${{ env.REPO_SMALL }}"
+          tag="${{ env.RELEASE_TAG }}"
           table="| Target Platform | Compressed Binary | Normal Binary | Compressed IPK | Normal IPK |\n"
           table+="|-----------------|-------------------|---------------|-----------------|-----------|\n"
-          
-          jq -r '.[] | "| \(.target) | \(.binary_compressed) | \(.binary_normal) | \(.ipk_compressed) | \(.ipk_normal) |"' ${artifacts_file} >> table.md
-          
+          table+=$(jq -r --arg owner "$owner" --arg repo "$repo" --arg tag "$tag" '
+            .[] | 
+            "| \(.target) | " +
+            (if .binary_compressed != "" then "[\(.binary_compressed)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.binary_compressed))" else "" end) + " | " +
+            (if .binary_normal != "" then "[\(.binary_normal)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.binary_normal))" else "" end) + " | " +
+            (if .ipk_compressed != "" then "[\(.ipk_compressed)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.ipk_compressed))" else "" end) + " | " +
+            (if .ipk_normal != "" then "[\(.ipk_normal)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.ipk_normal))" else "" end) + " |"
+          ' ${artifacts_file})
+
           # Print the table for debugging
-          cat table.md
+          echo "$table"
 
           # Set release body with table included
           release_body="## 🚀 Smaller Tailscale / 更小的Tailscale
