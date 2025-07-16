@@ -297,8 +297,8 @@ jobs:
                   packaging/CONTROL/control > ipk/CONTROL/control
 
               VERSION=${{ needs.version-check.outputs.upstream_tag }}
-              tar --format=ustar -C ipk/CONTROL -czf control.tar.gz .
-              tar --format=ustar -C ipk -czf data.tar.gz ./usr ./etc ./lib
+              tar --numeric-owner --group=0 --owner=0 -czf control.tar.gz -C ipk/CONTROL .
+              tar --numeric-owner --group=0 --owner=0 -czf data.tar.gz -C ipk ./usr ./etc ./lib
               if [[ "${bin}" =~ (normal) ]]; then
                 ar r ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}_normal.ipk control.tar.gz data.tar.gz ipk/debian-binary
                 echo "Created IPK: tailscale_${VERSION}_${ARCH}_normal.ipk"
