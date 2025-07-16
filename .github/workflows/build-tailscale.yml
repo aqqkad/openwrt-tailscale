@@ -303,7 +303,7 @@ jobs:
                 ar r ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}_normal.ipk control.tar.gz data.tar.gz ipk/debian-binary
                 echo "Created IPK: tailscale_${VERSION}_${ARCH}_normal.ipk"
               else
-                ar r ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}.ipk control.tar.gz data.tar.gz ipk/debian-binary
+                tar --numeric-owner --group=0 --owner=0 -cvzf ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}.ipk control.tar.gz data.tar.gz ipk/debian-binary
                 echo "Created IPK: tailscale_${VERSION}_${ARCH}.ipk"
               fi
 
@@ -437,26 +437,22 @@ jobs:
           ---
 
           ### 🛠️ Build Features / 构建特性
-          - Combined \`tailscale\` & \`tailscaled\` into single binary / 合并为单一二进制文件  
-          - Built with \`--extra-small\` flag / 极简编译选项  
+          - Built with \`--extra-small\` flag, combined \`tailscale\` & \`tailscaled\` into single binary / 极简编译选项合并为单一二进制文件  
           - UPX compressed (except mips64) / UPX 压缩 (mips64除外)  
           ### ⚠️ Requirements / 需求说明
-          - **Storage/存储空间**: <10MB (UPX)  
-          - **RAM/运行内存**: ~60MB  
-          - **Warning/警告**: May not work on devices with <256MB RAM / 内存小于256MB的设备可能无法运行  
+          - **Storage / 存储空间**: <10MB (UPX compression version); **RAM / 运行内存**: ~60MB  
+          - **Warning / 警告**: May not work on devices with <256MB RAM / 内存小于256MB的设备可能无法运行  
           ### 📦 About -normal version / 未压缩版本说明
-          - \`filename-normal\`: Original binary / 原始二进制  
-          - \`filename\`: UPX compressed / UPX压缩版本  
-          ### 📖 How to Determine the Target Platform / 如何确定目标平台
+          - The \`-normal\` version is the original binary without UPX compression / \`-normal\`版本为原始二进制文件，无UPX压缩  
+
+          ---
+
+          ### 📥 Download Links / 下载链接
           Run the following command on your OpenWRT device / 在您的OpenWRT设备上运行以下命令:
           \`\`\`bash
           opkg print-architecture
           \`\`\`
           This will list supported architectures, excluding \`all\` and \`noarch\` / 这将列出支持的架构，排除\`all\`和\`noarch\`
-
-          ---
-
-          ### 📥 Download Links / 下载链接
           ${table}"
 
           echo "release_body<<EOF" >> $GITHUB_OUTPUT
