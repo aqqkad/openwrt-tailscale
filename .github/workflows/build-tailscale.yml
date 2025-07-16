@@ -297,8 +297,8 @@ jobs:
                   -e "s/__EPOCH__/${EPOCH}/" \
                   packaging/CONTROL/control > ipk/CONTROL/control
 
-              tar -C ipk/CONTROL -czf control.tar.gz .
-              tar -C ipk -czf data.tar.gz ./usr ./etc ./lib
+              tar --format=ustar -C ipk/CONTROL -czf control.tar.gz .
+              tar --format=ustar -C ipk -czf data.tar.gz ./usr ./etc ./lib
               if [[ "${bin}" =~ (normal) ]]; then
                 ar r ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}_normal.ipk control.tar.gz data.tar.gz ipk/debian-binary
                 echo "Created IPK: tailscale_${VERSION}_${ARCH}_normal.ipk"
@@ -321,7 +321,7 @@ jobs:
 
           for target in ${targets}; do
             ARCH=${target}
-            VERSION=${{ needs.version-check.outputs.upstream_tag }}
+            VERSION=$(echo "${{ needs.version-check.outputs.upstream_tag }}" | sed 's/^v//')
 
             if [[ "${{ matrix.platform.id }}" =~ ^mips64 ]]; then
               binary_compressed="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}-normal"
@@ -380,6 +380,7 @@ jobs:
           echo "BUILD_DATE=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
           jq -s 'add' ${{ env.ARTIFACT_DIR }}/artifacts-*.json > ${{ env.ARTIFACT_DIR }}/artifacts.json
           rm -rf ${{ env.ARTIFACT_DIR }}/artifacts-*.json
+          rm -rf ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
           # Create checksums
           cd ${{ env.ARTIFACT_DIR }}
           sha256sum * > checksums.txt
@@ -412,16 +413,16 @@ jobs:
           owner="${{ env.REPO_SMALL_OWNER }}"
           repo="${{ env.REPO_SMALL_NAME }}"
           tag="${{ env.RELEASE_TAG }}"
-          table="| Target Platform | Compressed Binary | Normal Binary | Compressed IPK | Normal IPK |
-          |-----------------|-------------------|---------------|-----------------|-----------|
-          $(jq -r --arg owner "$owner" --arg repo "$repo" --arg tag "$tag" '
+            table="| Target Platform 目标平台 | Compressed Binary 压缩二进制 | Compressed IPK 压缩IPK | Normal Binary 原始二进制 | Normal IPK 原始IPK |
+            |----------------------|-------------------------|------------------------|---------------------|----------------|
+            $(jq -r --arg owner "$owner" --arg repo "$repo" --arg tag "$tag" '
             .[] | 
             "| \(.target) | " +
             (if .binary_compressed != "" then "[\(.binary_compressed)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.binary_compressed))" else "" end) + " | " +
-            (if .binary_normal != "" then "[\(.binary_normal)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.binary_normal))" else "" end) + " | " +
             (if .ipk_compressed != "" then "[\(.ipk_compressed)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.ipk_compressed))" else "" end) + " | " +
+            (if .binary_normal != "" then "[\(.binary_normal)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.binary_normal))" else "" end) + " | " +
             (if .ipk_normal != "" then "[\(.ipk_normal)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.ipk_normal))" else "" end) + " |"
-          ' ${artifacts_file})"
+            ' ${artifacts_file})"
 
           # Print the table for debugging
           echo "$table"
@@ -430,45 +431,32 @@ jobs:
           release_body="## 🚀 Smaller Tailscale / 更小的Tailscale
               
           **Version 版本** :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${{ env.RELEASE_TAG }}   
-          **Build date 构建日期** : &nbsp;&nbsp;&nbsp;${{ env.BUILD_DATE }}   
+          **Build date 构建日期** : &nbsp;&nbsp;&nbsp;&nbsp;${{ env.BUILD_DATE }}   
           **Changelog 更新日志** : &nbsp;&nbsp;&nbsp;https://github.com/${{ env.REPO }}/releases/tag/${{ env.RELEASE_TAG }}   
+          ---
+                ### 🛠️ Build Features / 构建特性
+                - Combined `tailscale` & `tailscaled` into single binary / 合并为单一二进制文件  
+                - Built with `--extra-small` flag / 极简编译选项  
+                - UPX compressed (except mips64) / UPX 压缩 (mips64除外)  
+
+                ### ⚠️ Requirements / 需求说明
+                - **Storage/存储空间**: <10MB (UPX)  
+                - **RAM/运行内存**: ~60MB  
+                - **Warning/警告**: May not work on devices with <256MB RAM / 内存小于256MB的设备可能无法运行  
+
+                ### 📦 About -normal version / 未压缩版本说明
+                - `filename-normal`: Original binary / 原始二进制  
+                - `filename`: UPX compressed / UPX压缩版本  
+                ### 📖 How to Determine the Target Platform / 如何确定目标平台
+                Run the following command on your OpenWRT device / 在您的OpenWRT设备上运行以下命令:
+                ```bash
+                opkg print-architecture
+                ```
+                This will list supported architectures, excluding `all` and `noarch` / 这将列出支持的架构，排除`all`和`noarch`
 
           ---
 
-          ### 🛠️ Build Features
-          - Combined \`tailscale\` & \`tailscaled\` into single binary  
-          - Combined binary with \`--extra-small\` flag  
-          - UPX compressed (except mips64 variants)  
-
-          ### ⚠️ Requirements
-          - **Storage**: less than 10MB (UPX compressed)  
-          - **RAM**: about 60MB (during operation)  
-          - **Warning**: May not work on devices with <256MB RAM  
-
-          ### 📦 About -normal version
-          May provide better security:
-          - \`filename-normal\`: Original binary  
-          - \`filename\`: UPX compressed  
-
-          ---
-
-          ### 🛠️ 构建特性
-          - 将 \`tailscale\` 与 \`tailscaled\` 合并为单一二进制文件  
-          - 使用 \`--extra-small\` 极简编译选项  
-          - UPX 压缩 (mips64架构除外)  
-
-          ### ⚠️ 需求说明
-          - **存储空间**: 小于 10MB (UPX 压缩后)  
-          - **运行内存**: 大约 60MB (运行时)  
-          - **警告**: 内存小于 256MB 的设备可能无法运行  
-
-          ### 📦 未压缩版本说明
-          可能提供更好的安全性:
-          - \`filename-normal\`: 原始二进制  
-          - \`filename\`: UPX压缩版本  
-          ---
-
-          ### 🛠️ Build Files / 构建文件
+          ### 📥 Download Links / 下载链接
           ${table}"
 
           echo "release_body<<EOF" >> $GITHUB_OUTPUT
