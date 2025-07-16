@@ -436,24 +436,86 @@ jobs:
 
           ---
 
-          ### 🛠️ Build Features / 构建特性
-          - Built with \`--extra-small\` flag, combined \`tailscale\` & \`tailscaled\` into single binary / 极简编译选项合并为单一二进制文件  
-          - UPX compressed (except mips64) / UPX 压缩 (mips64除外)  
-          ### ⚠️ Requirements / 需求说明
-          - **Storage / 存储空间**: <10MB (UPX compression version); **RAM / 运行内存**: ~60MB  
-          - **Warning / 警告**: May not work on devices with <256MB RAM / 内存小于256MB的设备可能无法运行  
-          ### 📦 About -normal version / 未压缩版本说明
-          - The \`-normal\` version is the original binary without UPX compression / \`-normal\`版本为原始二进制文件，无UPX压缩  
+          ### 🌏 中文说明
+          <details>
+          <summary>点击展开</summary>
+          这是一个为 OpenWRT 构建的 Tailscale 的极简版本，旨在提供更小的二进制文件和更少的资源占用。包含基础二进制文件和 IPK 包，适用于多种 OpenWRT 目标平台。  
+          ### 🛠️ 构建特性
+          - 将 \`tailscale\` 和 \`tailscaled\` 合并为单一二进制文件。  
+          - 使用 \`--extra-small\` 编译选项，极大地减少了二进制文件的体积。  
+          - 使用 UPX 压缩技术对二进制文件进行压缩（mips64 架构除外），进一步降低存储占用。  
+
+          ### ⚠️ 系统需求
+          - **存储空间**: UPX版本小于 10MB  
+          - **运行内存**: 大约 60MB  
+          - **注意事项**: 可能无法在内存小于 256MB 的设备上正常运行，请谨慎使用。  
+
+          ### 📦 关于未压缩版本
+          - \`filename-normal\`: 原始未压缩的二进制文件，适合需要完整功能或不支持 UPX 压缩的场景。  
+          - \`filename\`: 使用 UPX 压缩后的二进制文件，体积更小，适合大多数场景。  
+
+          ### 📖 如何确定目标平台
+          在您的 OpenWRT 设备上运行以下命令以确定支持的目标平台：  
+          \`\`\`bash
+          opkg print-architecture
+          \`\`\`  
+          该命令将列出设备支持的架构类型（不包括 \`all\` 和 \`noarch\`）。根据输出结果选择对应的文件进行安装。
+
+          </details>
+
+          ### 🌎 English Description
+          <details>
+          <summary>Click to expand</summary>
+          This is a minimal build of Tailscale for OpenWRT, designed to provide smaller binaries and lower resource usage. It includes basic binaries and IPK packages for various OpenWRT target platforms.  
+          ### 🛠️ Build Features
+          - Combined \`tailscale\` and \`tailscaled\` into a single binary.  
+          - Built with the \`--extra-small\` flag to significantly reduce binary size.  
+          - UPX compression applied to binaries (except for mips64 architecture) to further reduce storage usage.  
+
+          ### ⚠️ System Requirements
+          - **Storage Space**: UPX version is less than 10MB.  
+          - **RAM**: Approximately 60MB.  
+          - **Note**: May not work on devices with less than 256MB of RAM. Use with caution.  
+
+          ### 📦 About the Uncompressed Version
+          - \`filename-normal\`: Original uncompressed binary, suitable for scenarios requiring full functionality or where UPX compression is unsupported.  
+          - \`filename\`: UPX-compressed binary, smaller in size, suitable for most scenarios.  
+
+          ### 📖 How to Determine the Target Platform
+          Run the following command on your OpenWRT device to determine the supported target platform:  
+          \`\`\`bash
+          opkg print-architecture
+          \`\`\`  
+          This command will list the supported architecture types (excluding \`all\` and \`noarch\`). Choose the corresponding file based on the output.
+
+          </details>
+
+          > [!WARNING]  
+          > 如果 \`opkg\` 安装显示安装失败，请先通过运行以下命令测试：  
+          > \`\`\`bash
+          > tailscale --version
+          > \`\`\`  
+          > 如果命令正确输出版本号，则安装成功。否则请提交反馈。
+          >  
+          > If the \`opkg\` installation shows failure, please test first by running:  
+          > \`\`\`bash
+          > tailscale --version
+          > \`\`\`  
+          > If the command correctly outputs the version number, the installation is successful. Otherwise, please submit feedback.
 
           ---
 
-          ### 📥 Download Links / 下载链接
-          Run the following command on your OpenWRT device / 在您的OpenWRT设备上运行以下命令:
-          \`\`\`bash
-          opkg print-architecture
-          \`\`\`
-          This will list supported architectures, excluding \`all\` and \`noarch\` / 这将列出支持的架构，排除\`all\`和\`noarch\`
-          ${table}"
+          ### 📥 Download Links List / 下载链接清单
+          > [!NOTE]
+          > 请确保选择正确的目标平台架构和tailscale版本。
+          > Make sure to select the correct target platform architecture and Tailscale version.
+          <details>
+          <summary>Click to expand  /  点击展开</summary>
+
+          ${table}
+          
+          </details>
+          "
 
           echo "release_body<<EOF" >> $GITHUB_OUTPUT
           echo "${release_body}" >> $GITHUB_OUTPUT
