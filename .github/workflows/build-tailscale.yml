@@ -434,8 +434,8 @@ jobs:
           **Changelog 更新日志** : &nbsp;&nbsp;&nbsp;https://github.com/${{ env.REPO }}/releases/tag/${{ env.RELEASE_TAG }}   
           ---
                 ### 🛠️ Build Features / 构建特性
-                - Combined `tailscale` & `tailscaled` into single binary / 合并为单一二进制文件  
-                - Built with `--extra-small` flag / 极简编译选项  
+                - Combined \`tailscale\` & \`tailscaled\` into single binary / 合并为单一二进制文件  
+                - Built with \`--extra-small\` flag / 极简编译选项  
                 - UPX compressed (except mips64) / UPX 压缩 (mips64除外)  
                 ### ⚠️ Requirements / 需求说明
                 - **Storage/存储空间**: <10MB (UPX)  
