@@ -229,7 +229,7 @@ jobs:
       - name: Process binary
         run: |
           # Process binary
-          mkdir -p compressed
+          mkdir -p compressed "${{ env.ARTIFACT_DIR }}"
           filename="${{ env.FILE_NAME }}-linux-${{ matrix.platform.id }}"
           file="build/${filename}"
           chmod -v +x "${file}"
@@ -424,7 +424,7 @@ jobs:
 
           ### 🛠️ Build Files / 构建文件
           $table"
-          
+
           echo "$release_body" >> $GITHUB_ENV
 
       - name: Create GitHub Release
