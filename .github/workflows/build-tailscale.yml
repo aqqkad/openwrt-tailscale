@@ -437,7 +437,11 @@ jobs:
           }
 
           generate_tbody > feed/tbody.tmp
-          sed -i '/<!-- tbody-anchor -->/,/<!-- end-tbody-anchor -->/d' feed/index.html
+          sed -i '/<!-- tbody-anchor -->/,/<!-- end-tbody-anchor -->/ {
+            /<!-- tbody-anchor -->/!{
+              /<!-- end-tbody-anchor -->/!d
+            }
+          }' feed/index.html
           sed -i '/<!-- tbody-anchor -->/r feed/tbody.tmp' feed/index.html
 
           current_date="${{ env.BUILD_DATE }}"
