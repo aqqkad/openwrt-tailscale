@@ -1,7 +1,7 @@
 Package: tailscale
 Version: __VERSION__
 Depends: libc, ca-bundle, kmod-tun
-Provides: tailscaled
+Provides: tailscale tailscaled
 Source: https://github.com/GuNanOvO/openwrt-tailscale
 SourceName: openwrt-tailscale
 License: BSD-3-Clause

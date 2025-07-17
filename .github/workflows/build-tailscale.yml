@@ -439,7 +439,8 @@ jobs:
           ### 🌏 中文说明
           <details>
           <summary>点击展开</summary>
-          这是一个为 OpenWRT 构建的 Tailscale 的极简版本，旨在提供更小的二进制文件和更少的资源占用。包含基础二进制文件和 IPK 包，适用于多种 OpenWRT 目标平台。  
+          这是一个为 OpenWRT 构建的 Tailscale 的极简版本，旨在提供更小的二进制文件和更少的资源占用。包含基础二进制文件和 IPK 包，适用于多种 OpenWRT 目标平台。
+
           ### 🛠️ 构建特性
           - 将 \`tailscale\` 和 \`tailscaled\` 合并为单一二进制文件。  
           - 使用 \`--extra-small\` 编译选项，极大地减少了二进制文件的体积。  
@@ -467,6 +468,7 @@ jobs:
           <details>
           <summary>Click to expand</summary>
           This is a minimal build of Tailscale for OpenWRT, designed to provide smaller binaries and lower resource usage. It includes basic binaries and IPK packages for various OpenWRT target platforms.  
+
           ### 🛠️ Build Features
           - Combined \`tailscale\` and \`tailscaled\` into a single binary.  
           - Built with the \`--extra-small\` flag to significantly reduce binary size.  
@@ -490,6 +492,8 @@ jobs:
 
           </details>
 
+          ---
+            
           > [!WARNING]  
           > 如果 \`opkg\` 安装显示安装失败，请先通过运行以下命令测试：  
           > \`\`\`bash
