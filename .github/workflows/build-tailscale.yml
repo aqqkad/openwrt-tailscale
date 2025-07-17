@@ -440,7 +440,7 @@ jobs:
           sed -i '/<!-- tbody-anchor -->/,/<!-- end-tbody-anchor -->/d' feed/index.html
           sed -i '/<!-- tbody-anchor -->/r feed/tbody.tmp' feed/index.html
 
-          current_date=${{ env.BUILD_DATE }}
+          current_date="${{ env.BUILD_DATE }}"
           sed -i "s#<span id=\"date\"></span>#<span id=\"date\">${current_date}</span>#" feed/index.html
 
           version=$(echo "${{ env.RELEASE_TAG }}" | sed 's/^v//')
