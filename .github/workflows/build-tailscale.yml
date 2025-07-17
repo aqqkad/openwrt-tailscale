@@ -274,7 +274,7 @@ jobs:
             cp -a packaging/CONTROL/* ipk/CONTROL/
 
             chmod +x ipk/etc/init.d/tailscale || true
-            echo '2.0' > ipk/debian-binary
+            echo '2.0' > debian-binary
 
             targets_json='${{ toJson(matrix.platform.openwrt_targets) }}'
             targets=$(echo "${targets_json}" | jq -r '.[]')
@@ -300,10 +300,10 @@ jobs:
               tar --numeric-owner --group=0 --owner=0 -czf control.tar.gz -C ipk/CONTROL .
               tar --numeric-owner --group=0 --owner=0 -czf data.tar.gz -C ipk ./usr ./etc ./lib
               if [[ "${bin}" =~ (normal) ]]; then
-                ar r ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}_normal.ipk control.tar.gz data.tar.gz ipk/debian-binary
+                tar --numeric-owner --group=0 --owner=0 -cvzf ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}_normal.ipk control.tar.gz data.tar.gz debian-binary
                 echo "Created IPK: tailscale_${VERSION}_${ARCH}_normal.ipk"
               else
-                tar --numeric-owner --group=0 --owner=0 -cvzf ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}.ipk control.tar.gz data.tar.gz ipk/debian-binary
+                tar --numeric-owner --group=0 --owner=0 -cvzf ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}.ipk control.tar.gz data.tar.gz debian-binary
                 echo "Created IPK: tailscale_${VERSION}_${ARCH}.ipk"
               fi
 
