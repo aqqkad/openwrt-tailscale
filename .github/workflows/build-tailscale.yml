@@ -417,7 +417,7 @@ jobs:
             cp "${{ env.ARTIFACT_DIR }}/${file}" feed/
           done
 
-          opkg-utils/opkg-make-index -a -f -v --checksum sha256 -v /feed > feed/Packages
+          opkg-utils/opkg-make-index -a -f -v --checksum sha256 -v feed > feed/Packages
           gzip --keep feed/Packages
 
           generate_tbody() {
