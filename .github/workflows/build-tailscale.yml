@@ -397,6 +397,31 @@ jobs:
             done
           } > build-info.txt
           cd ..
+      
+      - name: Checkout feed branch
+        uses: actions/checkout@v4
+        with:
+          ref: feed
+          path: feed
+
+      - name: Clone opkg-utils from Yocto
+        run: git clone --depth 1 git://git.yoctoproject.org/opkg-utils || echo "Clone failed"
+
+      - name: Prepare feed files
+        run: |
+          rm -rf feed/tailscale* feed/Packages* feed/version*
+                
+          jq -r '
+            .[] | select(.ipk_compressed != "") | .ipk_compressed
+          ' "${{ env.ARTIFACT_DIR }}/artifacts.json" | while read -r file; do
+            cp "${{ env.ARTIFACT_DIR }}/${file}" feed/
+          done
+
+          opkg-utils/opkg-make-index" -a -f -v --checksum sha256 -v . > feed/Packages
+          gzip --keep feed/Packages
+
+          
+
 
       - name: Generate release markdown
         id: generate_release_markdown
@@ -413,16 +438,16 @@ jobs:
           owner="${{ env.REPO_SMALL_OWNER }}"
           repo="${{ env.REPO_SMALL_NAME }}"
           tag="${{ env.RELEASE_TAG }}"
-            table="| Target Platform 目标平台 | Compressed Binary 压缩二进制 | Compressed IPK 压缩IPK | Normal Binary 原始二进制 | Normal IPK 原始IPK |
-            |----------------------|-------------------------|------------------------|---------------------|----------------|
-            $(jq -r --arg owner "$owner" --arg repo "$repo" --arg tag "$tag" '
-            .[] | 
-            "| \(.target) | " +
-            (if .binary_compressed != "" then "[\(.binary_compressed)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.binary_compressed))" else "" end) + " | " +
-            (if .ipk_compressed != "" then "[\(.ipk_compressed)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.ipk_compressed))" else "" end) + " | " +
-            (if .binary_normal != "" then "[\(.binary_normal)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.binary_normal))" else "" end) + " | " +
-            (if .ipk_normal != "" then "[\(.ipk_normal)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.ipk_normal))" else "" end) + " |"
-            ' ${artifacts_file})"
+          table="| Target Platform 目标平台 | Compressed Binary 压缩二进制 | Compressed IPK 压缩IPK | Normal Binary 原始二进制 | Normal IPK 原始IPK |
+          |----------------------|-------------------------|------------------------|---------------------|----------------|
+          $(jq -r --arg owner "$owner" --arg repo "$repo" --arg tag "$tag" '
+          .[] | 
+          "| \(.target) | " +
+          (if .binary_compressed != "" then "[\(.binary_compressed)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.binary_compressed))" else "" end) + " | " +
+          (if .ipk_compressed != "" then "[\(.ipk_compressed)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.ipk_compressed))" else "" end) + " | " +
+          (if .binary_normal != "" then "[\(.binary_normal)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.binary_normal))" else "" end) + " | " +
+          (if .ipk_normal != "" then "[\(.ipk_normal)](https://github.com/\($owner)/\($repo)/releases/download/\($tag)/\(.ipk_normal))" else "" end) + " |"
+          ' ${artifacts_file})"
 
           # Print the table for debugging
           echo "$table"
