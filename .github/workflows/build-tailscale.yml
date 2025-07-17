@@ -422,7 +422,7 @@ jobs:
 
           generate_tbody() {
             echo "          <tbody>"
-            for file in feed/package* feed/tailscale*; do
+            for file in feed/Packages* feed/tailscale*; do
               [ -f "${file}" ] || continue
               fname=$(basename "${file}")
               fsize=$(du -h "${file}" | cut -f1)
@@ -437,16 +437,24 @@ jobs:
           }
 
           generate_tbody > feed/tbody.tmp
-
           sed -i '/<!-- tbody-anchor -->/,/<!-- end-tbody-anchor -->/d' feed/index.html
-
           sed -i '/<!-- tbody-anchor -->/r feed/tbody.tmp' feed/index.html
 
           current_date=${{ env.BUILD_DATE }}
-
           sed -i "s#<span id=\"date\"></span>#<span id=\"date\">${current_date}</span>#" feed/index.html
 
-          mv feed/index.html.new feed/index.html
+          version=$(echo "${{ env.RELEASE_TAG }}" | sed 's/^v//')
+          sed -i "s#<span id=\"version\"></span>#<span id=\"version\">${version}</span>#" feed/index.html
+
+          rm -f feed/tbody.tmp
+
+      - name: Deploy to feed branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: feed
+          publish_branch: feed
+          force_orphan: true
 
 
       - name: Generate release markdown
