@@ -297,13 +297,13 @@ jobs:
                   packaging/CONTROL/control > ipk/CONTROL/control
 
               VERSION=${{ needs.version-check.outputs.upstream_tag }}
-              tar --numeric-owner --group=0 --owner=0 -czf control.tar.gz -C ipk/CONTROL .
-              tar --numeric-owner --group=0 --owner=0 -czf data.tar.gz -C ipk ./usr ./etc ./lib
+              tar --format=gnu --numeric-owner --group=0 --owner=0 -czf control.tar.gz -C ipk/CONTROL .
+              tar --format=gnu --numeric-owner --group=0 --owner=0 -czf data.tar.gz -C ipk ./usr ./etc ./lib
               if [[ "${bin}" =~ (normal) ]]; then
-                tar --numeric-owner --group=0 --owner=0 -cvzf ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}_normal.ipk control.tar.gz data.tar.gz debian-binary
+                tar --format=gnu --numeric-owner --group=0 --owner=0 -cvzf ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}_normal.ipk control.tar.gz data.tar.gz debian-binary
                 echo "Created IPK: tailscale_${VERSION}_${ARCH}_normal.ipk"
               else
-                tar --numeric-owner --group=0 --owner=0 -cvzf ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}.ipk control.tar.gz data.tar.gz debian-binary
+                tar --format=gnu --numeric-owner --group=0 --owner=0 -cvzf ${{ env.ARTIFACT_DIR }}/tailscale_${VERSION}_${ARCH}.ipk control.tar.gz data.tar.gz debian-binary
                 echo "Created IPK: tailscale_${VERSION}_${ARCH}.ipk"
               fi
 
@@ -417,7 +417,7 @@ jobs:
             cp "${{ env.ARTIFACT_DIR }}/${file}" feed/
           done
 
-          opkg-utils/opkg-make-index -a -f -v --checksum sha256 -v . > feed/Packages
+          opkg-utils/opkg-make-index -a -f -v --checksum sha256 -v /feed > feed/Packages
           gzip --keep feed/Packages
 
           generate_tbody() {
