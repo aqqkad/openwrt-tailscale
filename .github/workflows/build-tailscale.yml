@@ -417,10 +417,36 @@ jobs:
             cp "${{ env.ARTIFACT_DIR }}/${file}" feed/
           done
 
-          opkg-utils/opkg-make-index" -a -f -v --checksum sha256 -v . > feed/Packages
+          opkg-utils/opkg-make-index -a -f -v --checksum sha256 -v . > feed/Packages
           gzip --keep feed/Packages
 
-          
+          generate_tbody() {
+            echo "          <tbody>"
+            for file in feed/package* feed/tailscale*; do
+              [ -f "${file}" ] || continue
+              fname=$(basename "${file}")
+              fsize=$(du -h "${file}" | cut -f1)
+              fdate=$(date -r "${file}" +"%Y-%m-%d")
+              echo "                        <tr>"
+              echo "                            <td><a href=\"$fname\">$fname</a></td>"
+              echo "                            <td>$fsize</td>"
+              echo "                            <td>$fdate</td>"
+              echo "                        </tr>"
+            done
+            echo "          </tbody>"
+          }
+
+          generate_tbody > feed/tbody.tmp
+
+          sed -i '/<!-- tbody-anchor -->/,/<!-- end-tbody-anchor -->/d' feed/index.html
+
+          sed -i '/<!-- tbody-anchor -->/r feed/tbody.tmp' feed/index.html
+
+          current_date=${{ env.BUILD_DATE }}
+
+          sed -i "s#<span id=\"date\"></span>#<span id=\"date\">${current_date}</span>#" feed/index.html
+
+          mv feed/index.html.new feed/index.html
 
 
       - name: Generate release markdown
