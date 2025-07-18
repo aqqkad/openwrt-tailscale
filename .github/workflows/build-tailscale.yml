@@ -469,8 +469,6 @@ jobs:
           git push origin HEAD:feed
         working-directory: feed
 
-
-
       - name: Generate release markdown
         id: generate_release_markdown
         run: |
