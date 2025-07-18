@@ -452,13 +452,16 @@ jobs:
 
           rm -f feed/tbody.tmp
 
-      - name: Deploy to feed branch
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: feed
-          publish_branch: feed
-          force_orphan: true
+      - name: Commit and push to feed branch
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Update feed: ${{ env.BUILD_DATE }}"
+          git push origin HEAD:feed
+        working-directory: feed
+
 
 
       - name: Generate release markdown
