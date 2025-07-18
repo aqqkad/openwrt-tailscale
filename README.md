@@ -2,6 +2,7 @@
 
 ![Tailscale & OpenWrt](./banner.png)  
 # 适用于 OpenWrt 的 Tailscale 一键安装脚本
+# 同时提供OPKG软件源 -> [ [Smaller Tailscale Repo](https://gunanovo.github.io/openwrt-tailscale/) ]
 
 ![GitHub release](https://img.shields.io/github/v/release/GuNanOvO/openwrt-tailscale?style=flat)
 ![Views](https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fgithub.com%2FGuNanOvO%2Fopenwrt-tailscale&label=Views&countColor=%23b7d079&style=flat)
@@ -13,12 +14,13 @@
 
 > [!NOTE]
 > 一个专为 OpenWrt 小存储空间设备设计的 Tailscale 安装工具  
-> 支持持久化安装、临时安装  
+> 支持持久化安装、临时安装、opkg安装  
 > 缩小tailscale体积至 **6MB**！（使用编译优化+UPX压缩技术）  
 > 可以帮助您升级您的旧版本OpenWrt设备上的旧版本Tailscale
 
 ---
-<details>
+
+<details open>
 <summary><h2>支持架构列表</h2></summary>
 
 | 架构类型        | 测试情况      | 测试设备  | 测试系统环境 |
@@ -33,93 +35,132 @@
 
 </details>
 
-
-
 ---
 
-## 📥 使用方法
+<details open>
+<summary><h2>使用方法</h2></summary>
 
-### ⚠️ 需求说明
-- **存储空间**: 小于 10MB (UPX 压缩后)  
-- **运行内存**: 大约 60MB (运行时)  
-- **警告**: 内存小于 256MB 的设备可能无法运行 
+<details open>
+<summary><h3>用前必看</h3></summary>
 
-### 🔌 推荐方式（SSH连接）
+> [!IMPORTANT]
+> **需求说明:**
+> - **存储空间**: 小于 10MB (UPX 压缩后)  
+> - **运行内存**: 大约 60MB (运行时)  
+> - **网络环境**: 能够访问 GitHub 或代理镜像站  
 
-```bash
-wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh
-```
+> [!WARNING]
+> **需要注意:**
+> - 内存小于 256MB 的设备可能无法运行  
+> - 临时安装高度依赖于网络环境，可靠性较低！建议仅用于无法持久安装的设备  
+> - 多数设备或架构未经过测试，如果您测试不可用，烦请提出issues,我会尽快与您沟通进行修复  
 
-### 🖥️ 不支持中文的终端
+</details>
+
+<details open>
+<summary><h3>推荐方式</h3></summary>
+
+**一键式命令行脚本:**
+> SSH链接至OpenWrt设备执行:
+> ```bash
+> wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh
+> ```
+> 仅中国大陆用户，其他地区请见[English README](README_en.md)  
+
+**添加opkg软件源:**
+> 详见本项目分支 [软件源仓库分支](../feed/README.md) 或本项目opkg软件源页面 [Smaller Tailscale Repository For OpenWrt](https://gunanovo.github.io/openwrt-tailscale/)  
+> 仅包含经过UPX压缩的ipk软件包（mips64架构与mips64le架构仅有未经UPX压缩版）
+
+</details>
+
+<details>
+<summary><h3>更多可选方式</h3></summary>
+
+#### 不支持中文的终端
 ```bash
 wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install_en_cnproxy.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh
 ```
 
-### 📦 安装未压缩的版本（约25mb）
+#### 安装未压缩的版本（约25mb）
 使用参数`--notiny`
 ```bash
 wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh --notiny
 ```
 
-### 🌐 自定义代理
+#### 自定义代理
 使用参数`--custom-proxy`
 ```bash
 wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com/GuNanOvO/openwrt-tailscale/main/install.sh && chmod +x /usr/bin/install.sh && /usr/bin/install.sh --custom-proxy
 ```
 
-### 👋🏻 手动持久安装  
-1. 于本项目[Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases)下载与您设备对应架构的tailscaled文件  
-2. 将该二进制可执行文件置于您设备的`/usr/bin`目录下  
-3. 重命名该二进制可执行文件重命名为`tailscaled`  
-4. 使用命令`ln -sv /usr/bin/tailscaled /usr/bin/tailscale`  
-5. 于本项目[代码目录](https://github.com/GuNanOvO/openwrt-tailscale/tree/main/etc/init.d)下载tailscale文件（您也可以手动创建文件并填入该文件的内容）  
-6. 将该文件置于您设备的`/etc/init.d`目录下  
-7. 将上述文件添加可执行权限`chmod +x /etc/init.d/tailscale && chmod +x /usr/bin/tailscale && chmod +x /usr/bin/tailscaled`
-8. 执行命令`/etc/init.d/tailscale start`稍等一会，再执行`tailscale up`  
-9. 如果你的OpenWrt版本为22.03，你还需要添加 `--netfilter-mode=off`参数， 对于OpenWrt 23+ 则不应该包含该参数
-10. enjoy～🫰🏻
+</details>
+
+
+<details>
+<summary><h3>手动持久安装</h3></summary>
+
+#### 安装二进制文件:
+> 1. 于本项目[Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases)下载与您设备对应架构的tailscaled文件  
+> 2. 将该二进制可执行文件置于您设备的`/usr/bin`目录下  
+> 3. 重命名该二进制可执行文件重命名为`tailscaled`  
+> 4. 使用命令`ln -sv /usr/bin/tailscaled /usr/bin/tailscale`  
+> 5. 于本项目[目录](https://github.com/GuNanOvO/openwrt-tailscale/tree/main/etc/init.d)下的tailscale文件（您也可以手动创建文件并填入该文件的内容）  
+> 6. 将该文件置于您设备的`/etc/init.d`目录下  
+> 7. 将上述文件添加可执行权限`chmod +x /etc/init.d/tailscale && chmod +x /usr/bin/tailscale && chmod +x /usr/bin/tailscaled`
+> 8. 执行命令`/etc/init.d/tailscale start`稍等一会，再执行`tailscale up`  
+> 9. 如果你的OpenWrt版本为22.03，你还需要添加 `--netfilter-mode=off`参数， 对于OpenWrt 23+ 则不应该包含该参数
+> 10. enjoy～🫰🏻
+
+#### 安装ipk软件包:
+> 1. 于本项目[Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases)下载与您设备对应架构的ipk软件包(自由选择压缩版与未压缩版)； 
+> 2. 可以于OpenWrt设备后台网页界面 -> 系统 -> 软件包 -> 上传软件包，选择您下载的软件包进行上传并安装；
+>     >注意: 显示安装错误，则先测试 `tailscale up` ，如若正常，则安装成功。
+
+</details>
+
+
+</details>
 
 ---
 
-## ⚠️ 注意事项
+<details>
+<summary><h2>实现原理</h2></summary>
 
-1. **临时安装警告**  
-   🔥 `/tmp` 目录会在重启后清空！建议仅用于空间实在无法持久安装的设备，由于临时安装原理高度依赖于网络，建议不要仅依赖于tailscale，以免影响您的使用
+#### 编译优化:  
+使用了Tailscale[官方文档](https://tailscale.com/kb/1207/small-tailscale)指出的 `--extra-small` 编译选项，加之[UPX](https://upx.github.io/)的二进制文件压缩技术，将tailscale压缩至原来的20%，使得在小存储空间的openwrt设备上使用tailscale变得可能🎉
 
-2. **网络要求**  
-   🌐 必须能访问 GitHub 和代理镜像站
-
-3. **兼容性**  
-   ⚠️ 多数设备或架构未经过测试，如果您测试不可用，麻烦您提出issues,我会尽快与您沟通进行修复
-
-
----
-
-## ⚙️ 实现原理
-
-**🛠️ 编译优化**: 使用了Tailscale[官方文档](https://tailscale.com/kb/1207/small-tailscale)指出的 `--extra-small` 编译选项，加之[UPX](https://upx.github.io/)的二进制文件压缩技术，将tailscale压缩至原来的20%，使得在小存储空间的openwrt设备上使用tailscale变得可能🎉
-
-### 📦 脚本核心逻辑
+#### 核心逻辑:  
 1. **持久安装**  
-   - 将tailscaled二进制文件置于`/usr/bin`，使用`ln -sv tailscaled tailscale`链接tailscaled到tailscale，仅需大约 **7mb** 即可正常使用tailscale服务。即便所需空间仅 **7mb** ,但我们仍希望您尽量保持存储空间有 **20mb** 时才使用持久化安装。
+   - 将tailscaled二进制文件置于`/usr/bin`，使用`ln -sv tailscaled tailscale`软链接tailscaled到tailscale，仅需大约 **7mb** 即可正常使用tailscale服务。即便所需空间仅 **7mb** 。
 
 2. **临时安装**  
-   - 将tailscaled二进制文件至于`/tmp`，同样使用`ln -sv tailscaled tailscale`链接tailscaled到tailscale，由于是放置于/tmp目录，该安装方式会占用设备内存。每次重启后，会调用到脚本进行重新下载tailscale。
+   - 将tailscaled二进制文件至于`/tmp`，同样使用`ln -sv tailscaled tailscale`软链接tailscaled到tailscale，由于是放置于/tmp目录，该安装方式会占用设备运行内存。每次重启后，会调用到脚本进行重新下载tailscale，因此可靠性较低。
+
+</details>
 
 ---
 
-## 🙏 特别致谢
-**📦 [tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt)**: 为本脚本提供了临时安装思路  
-**📦 [glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater)**: 为本脚本提供了永久安装与压缩技术思路 
+<details open>
+<summary><h2>特别致谢 🙏</h2></summary>
+
+**[[glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater)]**: 永久安装与UPX压缩技术参考来源  
+**[[tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt)]**: 临时安装参考来源  
+**[[openwrt-tailscale-repo](https://github.com/lanrat/openwrt-tailscale-repo)]**: ipk打包与软件源部署参考来源  
+
+</details>
 
 ---
 
-## 🐛 问题反馈
+<details open>
+<summary><h2>问题反馈</h2></summary>
 
 遇到问题请至 [Issues](https://github.com/GuNanOvO/openwrt-tailscale/issues) 提交，请附上：
 1. 设备架构信息（`uname -m`）
-2. 安装模式（持久/临时）
-3. 相关日志片段
+2. 目标平台架构信息（`opkg print-architecture`）
+3. 安装模式（持久/临时/opkg安装）
+4. 相关日志片段
+
+</details>
 
 ---
 
