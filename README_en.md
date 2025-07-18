@@ -43,14 +43,12 @@
 <details open>
 <summary><h3>Important Notes</h3></summary>
 
-> [!IMPORTANT]
-> **Requirements:**
+> **⚠️ Requirements:**
 > - **Storage Space**: Less than 10MB (UPX compressed)  
 > - **Memory**: Approximately 60MB (runtime)  
 > - **Network**: Access to GitHub  
 
-> [!WARNING]
-> **Important Considerations:**
+> **⚠️ Important Considerations:**
 > - May not work on devices with less than 256MB RAM  
 > - Temporary installation heavily depends on network reliability! Recommended only for devices that cannot support persistent installation  
 > - Most devices/architectures are untested. If you encounter issues, please submit an issue report  
