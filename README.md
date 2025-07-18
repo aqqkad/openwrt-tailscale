@@ -8,8 +8,9 @@
 ![Downloads](https://img.shields.io/github/downloads/GuNanOvO/openwrt-tailscale/total?style=flat)
 ![GitHub Stars](https://img.shields.io/github/stars/GuNanOvO/openwrt-tailscale?label=Stars&color=yellow)
 
-Bring the latest Tailscale to small-storage OpenWrt device  
-space-saving & easy install & easy update  
+> Bring the latest Tailscale to small-storage OpenWrt device  
+> space-saving & easy install & easy update  
+
 > [!NOTE]
 > 一个专为 OpenWrt 小存储空间设备设计的 Tailscale 安装工具  
 > 支持持久化安装、临时安装  
