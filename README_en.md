@@ -58,7 +58,8 @@ wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-t
 6. Place this file in your device's `/etc/init.d` directory.
 7. Grant execute permissions:`chmod +x /etc/init.d/tailscale && chmod +x /usr/bin/tailscale && chmod +x /usr/bin/tailscaled`
 8. Run `/etc/init.d/tailscale start`, wait a moment, then execute `tailscale up`.
-9. Enjoy～🫰🏻
+9. If you're using OpenWrt == 22.03 you will also need to specify `--netfilter-mode=off`. For versions 23+ do NOT include netfilter-mode.  
+10. Enjoy～🫰🏻
 
 ---
 
