@@ -1,7 +1,7 @@
 **简体中文** | [English](README_en.md)  
 
 ![Tailscale & OpenWrt](./banner.png)  
-# 📖 适用于 OpenWrt 的 Tailscale 一键安装脚本
+# 适用于 OpenWrt 的 Tailscale 一键安装脚本
 
 ![GitHub release](https://img.shields.io/github/v/release/GuNanOvO/openwrt-tailscale?style=flat)
 ![Views](https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fgithub.com%2FGuNanOvO%2Fopenwrt-tailscale&label=Views&countColor=%23b7d079&style=flat)
@@ -10,14 +10,15 @@
 
 Bring the latest Tailscale to small-storage OpenWrt device  
 space-saving & easy install & easy update  
-> ✨ 一个专为 OpenWrt 小存储空间设备设计的 Tailscale 安装工具  
-> 🚀 支持持久化安装、临时安装  
-> 🔥 缩小tailscale体积 **70%**！（使用编译优化+UPX压缩技术）  
-> 🛠️ 可以帮助您升级您的旧版本OpenWrt设备上的旧版本Tailscale
+> [!NOTE]
+> 一个专为 OpenWrt 小存储空间设备设计的 Tailscale 安装工具  
+> 支持持久化安装、临时安装  
+> 缩小tailscale体积至 **6MB**！（使用编译优化+UPX压缩技术）  
+> 可以帮助您升级您的旧版本OpenWrt设备上的旧版本Tailscale
 
 ---
 
-## 🖥️ 支持架构列表
+## 支持架构列表
 
 | 架构类型        | 测试情况      | 测试设备  | 测试系统环境 |
 |-----------------|---------------|-----------|--------------|
