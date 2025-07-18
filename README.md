@@ -98,21 +98,21 @@ wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com
 <summary><h3>手动持久安装</h3></summary>
 
 #### 安装二进制文件:
-> 1. 于本项目[Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases)下载与您设备对应架构的tailscaled文件  
-> 2. 将该二进制可执行文件置于您设备的`/usr/bin`目录下  
-> 3. 重命名该二进制可执行文件重命名为`tailscaled`  
-> 4. 使用命令`ln -sv /usr/bin/tailscaled /usr/bin/tailscale`  
-> 5. 于本项目[目录](https://github.com/GuNanOvO/openwrt-tailscale/tree/main/etc/init.d)下的tailscale文件（您也可以手动创建文件并填入该文件的内容）  
-> 6. 将该文件置于您设备的`/etc/init.d`目录下  
-> 7. 将上述文件添加可执行权限`chmod +x /etc/init.d/tailscale && chmod +x /usr/bin/tailscale && chmod +x /usr/bin/tailscaled`
-> 8. 执行命令`/etc/init.d/tailscale start`稍等一会，再执行`tailscale up`  
-> 9. 如果你的OpenWrt版本为22.03，你还需要添加 `--netfilter-mode=off`参数， 对于OpenWrt 23+ 则不应该包含该参数
-> 10. enjoy～🫰🏻
+ 1. 于本项目[Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases)下载与您设备对应架构的tailscaled文件  
+ 2. 将该二进制可执行文件置于您设备的`/usr/bin`目录下  
+ 3. 重命名该二进制可执行文件重命名为`tailscaled`  
+ 4. 使用命令`ln -sv /usr/bin/tailscaled /usr/bin/tailscale`  
+ 5. 于本项目[目录](https://github.com/GuNanOvO/openwrt-tailscale/tree/main/etc/init.d)下的tailscale文件（您也可以手动创建文件并填入该文件的内容）  
+ 6. 将该文件置于您设备的`/etc/init.d`目录下  
+ 7. 将上述文件添加可执行权限`chmod +x /etc/init.d/tailscale && chmod +x /usr/bin/tailscale && chmod +x /usr/bin/tailscaled`
+ 8. 执行命令`/etc/init.d/tailscale start`稍等一会，再执行`tailscale up`  
+ 9. 如果你的OpenWrt版本为22.03，你还需要添加 `--netfilter-mode=off`参数， 对于OpenWrt 23+ 则不应该包含该参数  
+ 10. enjoy～🫰🏻
 
 #### 安装ipk软件包:
-> 1. 于本项目[Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases)下载与您设备对应架构的ipk软件包(自由选择压缩版与未压缩版)； 
-> 2. 可以于OpenWrt设备后台网页界面 -> 系统 -> 软件包 -> 上传软件包，选择您下载的软件包进行上传并安装；
->     >注意: 显示安装错误，则先测试 `tailscale up` ，如若正常，则安装成功。
+ 1. 于本项目[Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases)下载与您设备对应架构的ipk软件包(自由选择压缩版与未压缩版)； 
+ 2. 可以于OpenWrt设备后台网页界面 -> 系统 -> 软件包 -> 上传软件包，选择您下载的软件包进行上传并安装；
+> 注意: 显示安装错误，则先测试 `tailscale up` ，如若正常，则安装成功。
 
 </details>
 

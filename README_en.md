@@ -86,21 +86,21 @@ wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-t
 <summary><h3>Manual Persistent Installation</h3></summary>
 
 #### Install binary files:
-> 1. Download the tailscaled file matching your device architecture from [Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases)  
-> 2. Place the binary in your device's `/usr/bin` directory  
-> 3. Rename the binary to `tailscaled`  
-> 4. Create symbolic link: `ln -sv /usr/bin/tailscaled /usr/bin/tailscale`  
-> 5. Get the init script from our [directory](https://github.com/GuNanOvO/openwrt-tailscale/tree/main/etc/init.d) or create manually  
-> 6. Place the file in your device's `/etc/init.d` directory  
-> 7. Add execute permissions: `chmod +x /etc/init.d/tailscale && chmod +x /usr/bin/tailscale && chmod +x /usr/bin/tailscaled`  
-> 8. Start service: `/etc/init.d/tailscale start` then run `tailscale up`  
-> 9. For OpenWrt 22.03, add `--netfilter-mode=off` parameter. Not required for OpenWrt 23+  
-> 10. Enjoy～🫰🏻  
+ 1. Download the tailscaled file matching your device architecture from [Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases)  
+ 2. Place the binary in your device's `/usr/bin` directory  
+ 3. Rename the binary to `tailscaled`  
+ 4. Create symbolic link: `ln -sv /usr/bin/tailscaled /usr/bin/tailscale`  
+ 5. Get the init script from our [directory](https://github.com/GuNanOvO/openwrt-tailscale/tree/main/etc/init.d) or create manually  
+ 6. Place the file in your device's `/etc/init.d` directory  
+ 7. Add execute permissions: `chmod +x /etc/init.d/tailscale && chmod +x /usr/bin/tailscale && chmod +x /usr/bin/tailscaled`  
+ 8. Start service: `/etc/init.d/tailscale start` then run `tailscale up`  
+ 9. For OpenWrt 22.03, add `--netfilter-mode=off` parameter. Not required for OpenWrt 23+  
+ 10. Enjoy～🫰🏻  
 
 #### Install ipk package:
-> 1. Download matching ipk package from [Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases) (choose compressed or uncompressed version)  
-> 2. Install via OpenWrt web UI: System → Software → Upload Package  
->     > Note: Ignore "failed log upload" error when install if `tailscale up` works normally  
+ 1. Download matching ipk package from [Releases](https://github.com/GuNanOvO/openwrt-tailscale/releases) (choose compressed or uncompressed version)  
+ 2. Install via OpenWrt web UI: System → Software → Upload Package  
+> Note: Ignore "failed log upload" error when install if `tailscale up` works normally  
 
 </details>
 
