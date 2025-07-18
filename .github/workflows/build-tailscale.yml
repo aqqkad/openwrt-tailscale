@@ -426,7 +426,7 @@ jobs:
               [ -f "${file}" ] || continue
               fname=$(basename "${file}")
               fsize=$(du -h "${file}" | cut -f1)
-              fdate=$(date -r "${file}" +"%Y-%m-%d")
+              fdate=$(date -r "${file}" +"%Y-%m-%d %a %H:%M:%S UTC")
               echo "                        <tr>"
               echo "                            <td><a href=\"$fname\">$fname</a></td>"
               echo "                            <td>$fsize</td>"
