@@ -417,7 +417,13 @@ jobs:
             cp "${{ env.ARTIFACT_DIR }}/${file}" feed/
           done
 
-          opkg-utils/opkg-make-index -a -f -v --checksum sha256 -v feed > feed/Packages
+          n=0
+          until opkg-utils/opkg-make-index -a -f -v --checksum sha256 feed > feed/Packages.tmp || [ $n -ge 3 ]; do
+            echo "Indexing failed, retrying... ($((++n)))"
+            sleep 2
+          done
+
+          [ -f feed/Packages.tmp ] && mv feed/Packages.tmp feed/Packages && gzip -kf feed/Packages
           gzip --keep feed/Packages
 
           generate_tbody() {
