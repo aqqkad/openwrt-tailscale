@@ -407,6 +407,20 @@ jobs:
       - name: Clone opkg-utils from Yocto
         run: git clone --depth 1 git://git.yoctoproject.org/opkg-utils || echo "Clone failed"
 
+      - name: Import GPG private key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+
+      - name: Setup GPG agent and unlock key
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          gpgconf --kill gpg-agent
+          echo "$GPG_PASSPHRASE" | gpg --batch --passphrase-fd 0 --pinentry-mode loopback --sign --dry-run
+
       - name: Prepare feed files
         run: |
           rm -rf feed/tailscale* feed/Packages* feed/version*
@@ -425,6 +439,8 @@ jobs:
 
           [ -f feed/Packages.tmp ] && mv feed/Packages.tmp feed/Packages && gzip -kf feed/Packages
           gzip --keep feed/Packages
+          
+          gpg --batch --yes --armor --detach-sign --output feed/Packages.sig feed/Packages
 
           generate_tbody() {
             echo "          <tbody>"
