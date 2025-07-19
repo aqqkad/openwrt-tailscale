@@ -446,7 +446,7 @@ jobs:
 
           [ -f ${{ env.ARTIFACT_DIR }}/Packages ] && mv ${{ env.ARTIFACT_DIR }}/Packages feed/Packages && gzip -kf feed/Packages
           
-          gpg --batch --yes --armor --detach-sign --output feed/Packages.sig feed/Packages
+          gpg --detach-sign --no-armor feed/Packages --output feed/Packages.sig 
 
           generate_tbody() {
             echo "          <tbody>"
