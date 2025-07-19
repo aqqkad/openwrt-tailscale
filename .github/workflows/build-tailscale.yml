@@ -419,21 +419,27 @@ jobs:
         with:
           ref: feed
           path: feed
-
-      - name: Import GPG private key
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      
+      - name: Setup Usign
         run: |
-          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
-
-      - name: Setup GPG agent and unlock key
+          sudo apt-get update
+          sudo apt-get install -y build-essential libmbedtls-dev
+          git clone https://git.openwrt.org/project/usign.git
+          cd usign
+          mkdir build
+          cd build
+          cmake ..
+          make
+          make install
+          
+      - name: Restore usign private key
         env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          USIGN_SECRET_KEY_B64: ${{ secrets.USIGN_SECRET_KEY_B64 }}
+        shell: bash
         run: |
-          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
-          gpgconf --kill gpg-agent
-          echo "$GPG_PASSPHRASE" | gpg --batch --passphrase-fd 0 --pinentry-mode loopback --sign --dry-run
-
+          echo "$USIGN_SECRET_KEY_B64" | base64 -d > key-build.sec
+          chmod 600 key-build.sec
+          
       - name: Prepare feed files
         run: |
           rm -rf feed/tailscale* feed/Packages* feed/version*
@@ -445,9 +451,15 @@ jobs:
           done
 
           [ -f ${{ env.ARTIFACT_DIR }}/Packages ] && mv ${{ env.ARTIFACT_DIR }}/Packages feed/Packages && gzip -kf feed/Packages
-          
-          gpg --batch --yes --armor --detach-sign --output feed/Packages.sig feed/Packages
+              
+          ls -l feed/
+          file feed/Packages
+          file key-build.sec
 
+          usign -S -m feed/Packages -s key-build.sec -x feed/Packages.sig
+
+          cat feed/Packages.sig
+          
           generate_tbody() {
             echo "          <tbody>"
             for file in feed/Packages* feed/tailscale*; do
