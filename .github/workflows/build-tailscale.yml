@@ -422,8 +422,6 @@ jobs:
       
       - name: Setup Usign
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libmbedtls-dev
           git clone https://git.openwrt.org/project/usign.git
           cd usign
           mkdir build
