@@ -210,6 +210,9 @@ jobs:
         with:
           version: latest
 
+      - name: Setup opkg-utils from Yocto
+        run: git clone --depth 1 git://git.yoctoproject.org/opkg-utils || echo "Clone failed"
+
       - name: Build binary
         working-directory: ./src
         env:
@@ -319,6 +322,8 @@ jobs:
 
           : > ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
 
+          mkdir -p feed
+
           for target in ${targets}; do
             ARCH=${target}
             VERSION=${{ needs.version-check.outputs.upstream_tag }}
@@ -343,6 +348,8 @@ jobs:
             [ -f "${{ env.ARTIFACT_DIR }}/${ipk_normal}" ] || ipk_normal=""
 
             echo "{\"target\":\"${ARCH}\",\"binary_compressed\":\"${binary_compressed}\",\"binary_normal\":\"${binary_normal}\",\"ipk_compressed\":\"${ipk_compressed}\",\"ipk_normal\":\"${ipk_normal}\"}," >> ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
+
+            cp -p "${{ env.ARTIFACT_DIR }}/${ipk_compressed}" feed/
           done
 
           {
@@ -350,6 +357,13 @@ jobs:
             sed '$ s/,$//' ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
             echo "]"
           } > ${{ env.ARTIFACT_DIR }}/artifacts-${{ matrix.platform.id }}.json
+           
+          n=0
+          until opkg-utils/opkg-make-index -a -f -v --checksum sha256 feed > feed/Packages.tmp || [ $n -ge 3 ]; do
+            echo "Indexing failed, retrying... ($((++n)))"
+            sleep 2
+          done
+          cp -f feed/Packages.tmp ${{ env.ARTIFACT_DIR }}/Packages-${{ matrix.platform.id }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -381,6 +395,8 @@ jobs:
           jq -s 'add' ${{ env.ARTIFACT_DIR }}/artifacts-*.json > ${{ env.ARTIFACT_DIR }}/artifacts.json
           rm -rf ${{ env.ARTIFACT_DIR }}/artifacts-*.json
           rm -rf ${{ env.ARTIFACT_DIR }}/artifacts.json.tmp
+          cat ${{ env.ARTIFACT_DIR }}/Packages-* > ${{ env.ARTIFACT_DIR }}/Packages
+          rm -rf ${{ env.ARTIFACT_DIR }}/Packages-*
           # Create checksums
           cd ${{ env.ARTIFACT_DIR }}
           sha256sum * > checksums.txt
@@ -403,9 +419,6 @@ jobs:
         with:
           ref: feed
           path: feed
-
-      - name: Clone opkg-utils from Yocto
-        run: git clone --depth 1 git://git.yoctoproject.org/opkg-utils || echo "Clone failed"
 
       - name: Import GPG private key
         env:
@@ -431,14 +444,7 @@ jobs:
             cp "${{ env.ARTIFACT_DIR }}/${file}" feed/
           done
 
-          n=0
-          until opkg-utils/opkg-make-index -a -f -v --checksum sha256 feed > feed/Packages.tmp || [ $n -ge 3 ]; do
-            echo "Indexing failed, retrying... ($((++n)))"
-            sleep 2
-          done
-
-          [ -f feed/Packages.tmp ] && mv feed/Packages.tmp feed/Packages && gzip -kf feed/Packages
-          gzip --keep feed/Packages
+          [ -f ${{ env.ARTIFACT_DIR }}/Packages ] && mv ${{ env.ARTIFACT_DIR }}/Packages feed/Packages && gzip -kf feed/Packages
           
           gpg --batch --yes --armor --detach-sign --output feed/Packages.sig feed/Packages
 
