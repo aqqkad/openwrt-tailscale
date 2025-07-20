@@ -108,28 +108,23 @@ wget -O /usr/bin/install.sh https://raw.githubusercontent.com/GuNanOvO/openwrt-t
 
 > [!NOTE]
 > If you encounter any of the following situations:
->
 > > 1. Your device has limited RAM, and during usage, Tailscale consumes an excessive amount of memory;  
 > > 2. Or Tailscale is killed and restarted by the OOM Killer;  
 > > 3. Or you’re not sure why Tailscale keeps restarting unexpectedly;  
-> Then you may try trading higher CPU usage for lower memory usage. Here's how:  
 >
+> Then you may try trading higher CPU usage for lower memory usage. Here's how:  
 > > 1. Edit the `/etc/init.d/tailscale` file:
-> >
 > >    ```bash
 > >    vi /etc/init.d/tailscale  
 > >    ```
 > > 2. Locate the following line:
-> >
 > >    ```bash
 > >    procd_set_param env TS_DEBUG_FIREWALL_MODE="$fw_mode"  
 > >    ```
 > > 3. Append `GOGC=10` to the end of that line so it becomes:
-> >
 > >    ```bash
 > >    procd_set_param env TS_DEBUG_FIREWALL_MODE="$fw_mode GOGC=10"  
 > >    ```
-> >
 > >    This will make Tailscale more aggressive in memory garbage collection.
 
 

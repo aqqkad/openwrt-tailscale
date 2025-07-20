@@ -121,29 +121,23 @@ wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com
 
 > [!NOTE]
 > 如果你有如下情况出现：
->
 > > 1. 设备运行内存有限，在使用过程中出现tailscale占用极高运行内存;  
 > > 2. 或直接致使tailscale被OOM KILLER杀死并重启;  
 > > 3. 或你不清楚什么原因导致tailscale异常重启;  
 >
 > 则，你可以尝试以更高的CPU占用换取较低的内存占用，操作如下：  
->
 > > 1. 修改`/etc/init.d/tailscale`文件
-> >
 > >    ```bash
 > >    vi /etc/init.d/tailscale  
 > >    ```
 > > 2. 找到 `procd_set_param env TS_DEBUG_FIREWALL_MODE="$fw_mode"` 一行
-> >
 > >    ```bash
 > >    procd_set_param env TS_DEBUG_FIREWALL_MODE="$fw_mode"  
 > >    ```
 > > 3. 在该行后方加上参数 `GOGC=10` 
-> >
 > >    ```bash
 > >    procd_set_param env TS_DEBUG_FIREWALL_MODE="$fw_mode GOGC=10"  
 > >    ```
-> >
 > >    该参数将使tailscale更积极地回收内存
 
 ---
