@@ -1,0 +1,8 @@
+NOTICE
+
+This project includes components derived from the Tailscale project:
+https://github.com/tailscale/tailscale
+
+The Tailscale project is licensed under the BSD 3-Clause License.
+
+See LICENSE.tailscale for the full license text.
