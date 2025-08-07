@@ -1,4 +1,4 @@
-**简体中文** | [English](README_en.md)  
+**简体中文文档** | [English Docs](README_en.md)
 
 ![Tailscale & OpenWrt](./banner.png)  
 # 适用于 OpenWrt 的 Tailscale 一键安装脚本
@@ -9,8 +9,7 @@
 ![Downloads](https://img.shields.io/github/downloads/GuNanOvO/openwrt-tailscale/total?style=flat)
 ![GitHub Stars](https://img.shields.io/github/stars/GuNanOvO/openwrt-tailscale?label=Stars&color=yellow)
 
-> Bring the latest Tailscale to small-storage OpenWrt device  
-> space-saving & easy install & easy update  
+Bring the latest Tailscale to small-storage OpenWrt device space-saving & easy install & easy update  
 
 > [!NOTE]
 > 一个专为 OpenWrt 小存储空间设备设计的 Tailscale 安装工具  
@@ -30,8 +29,6 @@
 | `arm`           | 已测试✔️     | CMCC-XR30  | OpenWrt 23.05.0     |
 | `arm64`         | 已测试✔️     | R2S        | ImmortalWrt 23.05.4 |
 | `mipsle`        | 已测试✔️     | qemu虚拟机 | ImmortalWrt 24.10.0 |
-| `riscv64`       | 未测试❌     |            |                     |
-| `geode`         | 未测试❌     |            |                     |
 
 </details>
 
@@ -180,6 +177,12 @@ wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com
 4. 相关日志片段
 
 </details>
+
+---
+
+## License
+
+本项目使用 MIT 协议，并包含来自 [**Tailscale**](https://github.com/tailscale/tailscale) 项目的代码，该部分遵循 BSD 3-Clause 协议。  
 
 ---
 

@@ -1,4 +1,4 @@
-**简体中文** | [English](README_en.md)  
+[简体中文文档](README.md) | **English Docs**  
 
 ![Tailscale & OpenWrt](./banner.png)  
 # One-Click Installation Script for Tailscale on OpenWrt
@@ -9,8 +9,7 @@
 ![Downloads](https://img.shields.io/github/downloads/GuNanOvO/openwrt-tailscale/total?style=flat)
 ![GitHub Stars](https://img.shields.io/github/stars/GuNanOvO/openwrt-tailscale?label=Stars&color=yellow)
 
-> Bring the latest Tailscale to small-storage OpenWrt device  
-> space-saving & easy install & easy update  
+Bring the latest Tailscale to small-storage OpenWrt device space-saving & easy install & easy update  
 
 > [!NOTE]
 > A Tailscale installation tool designed for OpenWrt devices with limited storage  
@@ -30,8 +29,6 @@
 | `arm`           | Tested ✔️     | CMCC-XR30   | OpenWrt 23.05.0         |
 | `arm64`         | Tested ✔️     | R2S         | ImmortalWrt 23.05.4     |
 | `mipsle`        | Tested ✔️     | qemu VM     | ImmortalWrt 24.10.0     |
-| `riscv64`       | Not Tested ❌ |             |                         |
-| `geode`         | Not Tested ❌ |             |                         |
 
 </details>
 
@@ -168,6 +165,12 @@ Please submit issues at [Issues](https://github.com/GuNanOvO/openwrt-tailscale/i
 4. Relevant log snippets  
 
 </details>
+
+---
+
+## License
+
+This project is licensed under the MIT License and includes components from the [**Tailscale**](https://github.com/tailscale/tailscale) project, which is licensed under the BSD 3-Clause License.
 
 ---
 
