@@ -2,14 +2,14 @@
 
 ![Tailscale & OpenWrt](./banner.png)  
 # 适用于 OpenWrt 的 Tailscale 一键安装脚本
-# 同时提供OPKG软件源 -> [ [Smaller Tailscale Repo](https://gunanovo.github.io/openwrt-tailscale/) ]
+## 同时提供OPKG软件源 -> [ [Smaller Tailscale Repo](https://gunanovo.github.io/openwrt-tailscale/) ]
 
 ![GitHub release](https://img.shields.io/github/v/release/GuNanOvO/openwrt-tailscale?style=flat)
 ![Views](https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fgithub.com%2FGuNanOvO%2Fopenwrt-tailscale&label=Views&countColor=%23b7d079&style=flat)
 ![Downloads](https://img.shields.io/github/downloads/GuNanOvO/openwrt-tailscale/total?style=flat)
 ![GitHub Stars](https://img.shields.io/github/stars/GuNanOvO/openwrt-tailscale?label=Stars&color=yellow)
 
-Bring the latest Tailscale to small-storage OpenWrt device space-saving & easy install & easy update  
+Bring the latest Tailscale to small-storage OpenWrt device. space-saving & easy install & easy update  
 
 > [!NOTE]
 > 一个专为 OpenWrt 小存储空间设备设计的 Tailscale 安装工具  
@@ -19,7 +19,7 @@ Bring the latest Tailscale to small-storage OpenWrt device space-saving & easy i
 
 ---
 
-<details open>
+<details>
 <summary><h2>支持架构列表</h2></summary>
 
 | 架构类型        | 测试情况      | 测试设备  | 测试系统环境 |
@@ -63,7 +63,7 @@ Bring the latest Tailscale to small-storage OpenWrt device space-saving & easy i
 > 仅中国大陆用户，其他地区请见[English README](README_en.md)  
 
 **添加opkg软件源:**
-> 详见本项目分支 [软件源仓库分支](../feed/README.md) 或本项目opkg软件源页面 [Smaller Tailscale Repository For OpenWrt](https://gunanovo.github.io/openwrt-tailscale/)  
+> 详见本项目分支 [软件源项目分支](../feed/README.md) 或本项目opkg软件源页面 [Smaller Tailscale Repository For OpenWrt](https://gunanovo.github.io/openwrt-tailscale/)  
 > 仅包含经过UPX压缩的ipk软件包（mips64架构与mips64le架构仅有未经UPX压缩版）
 
 </details>
@@ -159,9 +159,9 @@ wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com
 <details open>
 <summary><h2>特别致谢 🙏</h2></summary>
 
-**[[glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater)]**: 永久安装与UPX压缩技术参考来源  
-**[[tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt)]**: 临时安装参考来源  
-**[[openwrt-tailscale-repo](https://github.com/lanrat/openwrt-tailscale-repo)]**: ipk打包与软件源部署参考来源  
+> **[[glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater)]**: 永久安装与UPX压缩技术参考来源  
+> **[[tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt)]**: 临时安装参考来源  
+> **[[openwrt-tailscale-repo](https://github.com/lanrat/openwrt-tailscale-repo)]**: ipk打包与软件源部署参考来源  
 
 </details>
 
@@ -177,6 +177,25 @@ wget -O /usr/bin/install.sh https://ghfast.top/https://raw.githubusercontent.com
 4. 相关日志片段
 
 </details>
+
+---
+
+## 安全声明
+本项目是对 **Tailscale** 官方开源软件的再分发，主要目的是为 **OpenWrt** 用户提供及时更新的软件包，以替换官方源中已过时的版本。
+过时的 Tailscale 版本可能存在已知安全漏洞，及时更新对于保障网络安全至关重要。
+
+**透明与可验证**
+ - **源代码公开**：所有打包、构建与安装脚本完全开源，任何人均可审查、复现整个构建、安装流程。
+ - **自动化构建**：构建与打包过程完全由 GitHub Actions 自动执行，构建日志和产物对外公开，确保无人工干预。
+ - **官方源码构建**：所有二进制文件均直接从 [**Tailscale**](https://github.com/tailscale/tailscale) 官方项目 的发布版本源码编译，无任何功能性修改或隐藏代码。
+ - **可重复构建**：任何人可使用本项目的脚本在自己的 GitHub 或本地环境中重现构建结果，以验证一致性。
+
+**安全承诺**
+ - 本项目 **不植入任何恶意代码**，不收集、不上传用户的任何数据。
+ - 仅对构建过程进行优化（如体积精简），不改动 Tailscale 的核心功能与安全机制。
+ - 所有发布的软件包均提供可公开验证的构建记录与校验信息（SHA256 校验和 / usign 签名）。
+
+通过以上措施，本项目旨在为 OpenWrt 用户提供 **安全、透明、可审计** 的 Tailscale 安装与更新途径，降低使用过时版本带来的安全风险。
 
 ---
 

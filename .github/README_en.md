@@ -9,7 +9,7 @@
 ![Downloads](https://img.shields.io/github/downloads/GuNanOvO/openwrt-tailscale/total?style=flat)
 ![GitHub Stars](https://img.shields.io/github/stars/GuNanOvO/openwrt-tailscale?label=Stars&color=yellow)
 
-Bring the latest Tailscale to small-storage OpenWrt device space-saving & easy install & easy update  
+Bring the latest Tailscale to small-storage OpenWrt device. space-saving & easy install & easy update  
 
 > [!NOTE]
 > A Tailscale installation tool designed for OpenWrt devices with limited storage  
@@ -19,7 +19,7 @@ Bring the latest Tailscale to small-storage OpenWrt device space-saving & easy i
 
 ---
 
-<details open>
+<details>
 <summary><h2>Supported Architectures</h2></summary>
 
 | Architecture     | Test Status    | Test Device | Test System Environment |
@@ -147,9 +147,9 @@ Uses `--extra-small` compile option from Tailscale's [official documentation](ht
 <details open>
 <summary><h2>Special Thanks 🙏</h2></summary>
 
-**[[glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater)]**: Reference for persistent installation & UPX compression  
-**[[tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt)]**: Reference for temporary installation  
-**[[openwrt-tailscale-repo](https://github.com/lanrat/openwrt-tailscale-repo)]**: Reference for ipk packaging & repository deployment  
+> **[[glinet-tailscale-updater](https://github.com/Admonstrator/glinet-tailscale-updater)]**: Reference for persistent installation & UPX compression  
+> **[[tailscale-openwrt](https://github.com/CH3NGYZ/tailscale-openwrt)]**: Reference for temporary installation  
+> **[[openwrt-tailscale-repo](https://github.com/lanrat/openwrt-tailscale-repo)]**: Reference for ipk packaging & repository deployment  
 
 </details>
 
@@ -165,6 +165,25 @@ Please submit issues at [Issues](https://github.com/GuNanOvO/openwrt-tailscale/i
 4. Relevant log snippets  
 
 </details>
+
+---
+
+## Security Statement
+This repository redistributes the official **Tailscale** open-source software, with the primary goal of providing timely updates for **OpenWrt** users, as a replacement for the outdated versions often found in community feeds.
+Outdated versions of Tailscale may contain known vulnerabilities, and keeping Tailscale up-to-date is essential for maintaining network security.
+
+**Transparency & Verifiability**  
+ - **Open Source Code**: All build, packaging, and installation scripts are fully open-source. Anyone can inspect, audit, and reproduce the entire build and installation process.  
+ - **Automated Builds**: All builds and packaging are executed via GitHub Actions. The build logs and artifacts are publicly accessible to ensure full transparency and no manual interference.  
+ - **Built from Official Source**: All binaries are compiled directly from the Tailscale official repository’s released source code, with no functional modifications or hidden code.  
+ - **Reproducible Builds**: Anyone can rebuild the same packages using the provided scripts either on GitHub or in a local environment to verify consistency and authenticity. 
+  
+**Security Commitment**  
+ - This repository **does not introduce any malicious code**, nor does it collect or transmit any user data.
+ - Only build-time optimizations are applied (such as binary size reduction); the core functionality and security model of Tailscale remain untouched.
+ - All published packages include publicly verifiable build records and integrity data (SHA256 checksums / usign signatures).
+
+Through these practices, this project aims to offer a **secure, transparent, and auditable** Tailscale installation and update path for OpenWrt users — reducing the risks associated with outdated versions.
 
 ---
 
