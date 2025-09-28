@@ -94,8 +94,7 @@ show_init_progress_bar="true"
 
 
 # 函数：设置DNS
-set_system_dns() {
-}
+
 
 # 函数：获取系统架构
 get_system_arch() {
