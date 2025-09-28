@@ -95,11 +95,6 @@ show_init_progress_bar="true"
 
 # 函数：设置DNS
 set_system_dns() {
-cat <<EOF > /etc/resolv.conf
-search lan
-nameserver 223.5.5.5
-nameserver 119.29.29.29
-EOF
 }
 
 # 函数：获取系统架构
